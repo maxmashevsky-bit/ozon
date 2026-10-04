@@ -88,14 +88,33 @@ def verify(stack, output):
     seed_dataset(seed_file, seed_call)
     assert before_seed_repeat == stack.sql("SELECT count(*) FROM posts;") + ':' + stack.sql("SELECT count(*) FROM comments;")
     foreign = data(stack.url, add, {"p":seed_state['posts']['0'], "text":"user comment on seed"}, alice)['addComment']['id']
+    before_failed_clean = stack.sql("SELECT count(*) FROM posts;") + ':' + stack.sql("SELECT count(*) FROM comments;")
     try:
         clean_dataset(seed_file, seed_call, stack.sql)
         raise AssertionError('clean-seed removed a user comment')
-    except ValueError as exc:
-        assert 'user comments' in str(exc)
+    except subprocess.CalledProcessError as exc:
+        assert 'seed post has user comments' in exc.stderr
+    assert seed_file.exists()
+    assert before_failed_clean == stack.sql("SELECT count(*) FROM posts;") + ':' + stack.sql("SELECT count(*) FROM comments;")
     assert data(stack.url, 'query($id:ID!){comment(id:$id){authorId}}', {'id':foreign})['comment']['authorId'] == 'alice'
     stack.sql(f"DELETE FROM comments WHERE id={int(foreign)} AND author_id='alice';")
-    assert clean_dataset(seed_file, seed_call, stack.sql) == 3
+    def slow_cleanup(statement):
+        marker = 'ORDER BY id FOR UPDATE;'
+        assert marker in statement
+        return stack.sql(statement.replace(marker, marker + ' PERFORM pg_sleep(2);', 1))
+    with concurrent.futures.ThreadPoolExecutor(2) as pool:
+        cleanup = pool.submit(clean_dataset, seed_file, seed_call, slow_cleanup)
+        poll(lambda: stack.sql("SELECT count(*) FROM pg_stat_activity WHERE query LIKE '%seed_cleanup%' AND wait_event='PgSleep';") == '1', timeout=10, label='cleanup holding post locks')
+        concurrent_add = pool.submit(data, stack.url, add, {"p":seed_state['posts']['0'], "text":"parallel user comment"}, alice)
+        time.sleep(.1)
+        assert not concurrent_add.done(), 'addComment bypassed cleanup post lock'
+        assert cleanup.result(timeout=10) == 3
+        try:
+            concurrent_add.result(timeout=10)
+            raise AssertionError('addComment inserted after cleanup removed its post')
+        except AssertionError as exc:
+            assert 'GraphQL operation failed' in str(exc)
+    assert not seed_file.exists()
     assert data(stack.url, 'query($p:ID!){post(id:$p){id}}', {"p":p})['post']['id'] == p
     print("PASS restartable seed and scoped cleanup on PostgreSQL", flush=True)
 

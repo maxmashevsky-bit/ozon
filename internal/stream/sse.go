@@ -50,7 +50,7 @@ func (t SSE) Do(w http.ResponseWriter, r *http.Request, exec graphql.GraphExecut
 		return
 	}
 	responses, ctx := exec.DispatchOperation(ctx, op)
-	next := make(chan *graphql.Response, 1)
+	next := make(chan []byte, 1)
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
@@ -60,8 +60,14 @@ func (t SSE) Do(w http.ResponseWriter, r *http.Request, exec graphql.GraphExecut
 			if response == nil {
 				return
 			}
+			// gqlgen may reuse Response.Data on the next call to responses.
+			// Encode while this goroutine still owns the current response.
+			data, err := json.Marshal(response)
+			if err != nil {
+				return
+			}
 			select {
-			case next <- response:
+			case next <- data:
 			case <-ctx.Done():
 				return
 			}
@@ -106,13 +112,9 @@ func (t SSE) Do(w http.ResponseWriter, r *http.Request, exec graphql.GraphExecut
 			if !write(": heartbeat\n\n") {
 				return
 			}
-		case response, ok := <-next:
+		case data, ok := <-next:
 			if !ok {
 				write("event: complete\n\n")
-				return
-			}
-			data, err := json.Marshal(response)
-			if err != nil {
 				return
 			}
 			if !write("event: next\ndata: " + string(data) + "\n\n") {

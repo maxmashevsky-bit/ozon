@@ -35,14 +35,15 @@ class FakeAPI:
         end=start+len(selected)
         return {field:{'edges':[{'node':row} for row in selected], 'pageInfo':{'hasNextPage':end<len(rows),'endCursor':str(end)}}}
     def sql(self,statement):
-        if statement.startswith('SELECT count(*)'):
-            id_=re.search(r'post_id=(\d+)',statement).group(1)
-            return str(sum(c['postId']==id_ and c['authorId']!='demo' for c in self.comments))
-        id_=re.search(r'posts WHERE id=(\d+)',statement).group(1)
-        row=next((p for p in self.posts if p['id']==id_),None)
-        if row and row['authorId']=='demo' and "title='"+row['title']+"'" in statement:
-            self.posts.remove(row)
-            self.comments=[c for c in self.comments if c['postId']!=id_]
+        assert statement.startswith('\nBEGIN;') and statement.rstrip().endswith('COMMIT;')
+        expected = re.findall(r"\((\d+),'([^']+)'\)", statement)
+        ids = {id_ for id_,_ in expected}
+        if len(expected) != len(ids) or any(not any(p['id']==id_ and p['authorId']=='demo' and p['title']==title and p['text']=='Demonstration data' for p in self.posts) for id_,title in expected):
+            raise ValueError('seed ownership changed')
+        if any(c['postId'] in ids and c['authorId']!='demo' for c in self.comments):
+            raise ValueError('seed post has user comments')
+        self.posts = [p for p in self.posts if p['id'] not in ids]
+        self.comments = [c for c in self.comments if c['postId'] not in ids]
 
 class SeedTests(unittest.TestCase):
     def assert_dataset(self,api):
@@ -101,5 +102,20 @@ class SeedTests(unittest.TestCase):
             self.assertTrue(path.exists())
             self.assertEqual(len(api.posts),3)
             self.assertIn(user,api.comments)
+
+    def test_cleanup_rechecks_after_lookup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=pathlib.Path(directory)/'seed.json'; api=FakeAPI()
+            state=seed.seed_dataset(path,api)
+            def concurrent_comment(statement):
+                user=api.add(api.comments,postId=state['posts']['0'],parentId=None,text='concurrent user reply')
+                user['authorId']='alice'
+                return api.sql(statement)
+            with self.assertRaisesRegex(ValueError,'user comments'):
+                seed.clean_dataset(path,api,concurrent_comment)
+            self.assertTrue(path.exists())
+            self.assertEqual(len(api.posts),3)
+            self.assertEqual(len(api.comments),19)
+            self.assertEqual(api.comments[-1]['authorId'],'alice')
 
 if __name__=='__main__': unittest.main()

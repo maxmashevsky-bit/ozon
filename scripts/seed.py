@@ -137,14 +137,35 @@ def clean_dataset(path,call,sql):
     if not path.exists(): return 0
     state = load(path)
     found = find_posts(call,state)
-    # Only exact post IDs observed through the API, with matching author/title, are deleted.
-    # A seed post may have acquired a real user's comment since creation.
-    for post in found.values():
-        if int(sql(f"SELECT count(*) FROM comments WHERE post_id={int(post)} AND author_id <> 'demo';")):
-            raise ValueError('seed post has user comments; refusing cleanup')
-    for i,post in found.items():
-        value = int(post)
-        expected = title(state,i).replace("'","''")
-        sql(f"BEGIN; DELETE FROM comments WHERE post_id IN (SELECT id FROM posts WHERE id={value} AND author_id='demo' AND title='{expected}'); DELETE FROM posts WHERE id={value} AND author_id='demo' AND title='{expected}'; COMMIT;")
+    if not found:
+        raise ValueError('no tracked seed posts found; manifest preserved')
+    # One psql invocation is one connection. AddComment locks the same post row;
+    # it either commits before this lock and is seen below, or waits for deletion.
+    owned = ','.join(f"({int(post)},'{title(state,i).replace(chr(39), chr(39)*2)}')" for i,post in sorted(found.items()))
+    ids = ','.join(str(int(post)) for post in found.values())
+    sql(f"""
+BEGIN;
+DO $seed_cleanup$
+DECLARE owned_count integer;
+BEGIN
+  PERFORM id FROM posts WHERE id = ANY(ARRAY[{ids}]::bigint[]) ORDER BY id FOR UPDATE;
+  SELECT count(*) INTO owned_count FROM posts p
+    JOIN (VALUES {owned}) AS expected(id,title) ON p.id=expected.id
+    WHERE p.author_id='demo' AND p.title=expected.title AND p.text='Demonstration data';
+  IF owned_count <> {len(found)} THEN
+    RAISE EXCEPTION 'seed ownership changed';
+  END IF;
+  IF EXISTS (SELECT 1 FROM comments WHERE post_id = ANY(ARRAY[{ids}]::bigint[]) AND author_id <> 'demo') THEN
+    RAISE EXCEPTION 'seed post has user comments';
+  END IF;
+  DELETE FROM comments WHERE post_id = ANY(ARRAY[{ids}]::bigint[]);
+  DELETE FROM posts WHERE id = ANY(ARRAY[{ids}]::bigint[]);
+  GET DIAGNOSTICS owned_count = ROW_COUNT;
+  IF owned_count <> {len(found)} THEN
+    RAISE EXCEPTION 'seed posts changed during cleanup';
+  END IF;
+END $seed_cleanup$;
+COMMIT;
+""")
     path.unlink()
     return len(found)
