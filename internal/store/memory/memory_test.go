@@ -12,3 +12,5 @@ func TestContract(t *testing.T) {
 }
 
 func TestSubscriptions(t *testing.T) { store := memory.New(); contract.Subscriptions(t, store, store) }
+
+func TestPagesDuringWrites(t *testing.T) { contract.PagesDuringWrites(t, memory.New()) }

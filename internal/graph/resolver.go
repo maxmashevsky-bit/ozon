@@ -47,3 +47,11 @@ func pageInput(first int, after *string) core.PageInput {
 	}
 	return p
 }
+
+func commentConnection(page core.CommentPage) *model.CommentConnection {
+	result := &model.CommentConnection{Edges: make([]*model.CommentEdge, 0, len(page.Edges)), PageInfo: &model.PageInfo{HasNextPage: page.PageInfo.HasNextPage, EndCursor: page.PageInfo.EndCursor}}
+	for _, edge := range page.Edges {
+		result.Edges = append(result.Edges, &model.CommentEdge{Cursor: edge.Cursor, Node: commentModel(edge.Node)})
+	}
+	return result
+}

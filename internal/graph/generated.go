@@ -99,10 +99,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Comment  func(childComplexity int, id string) int
-		Comments func(childComplexity int, postID string, parentID *string, first int, after *string) int
-		Post     func(childComplexity int, id string) int
-		Posts    func(childComplexity int, first int, after *string) int
+		Comment         func(childComplexity int, id string) int
+		CommentBranches func(childComplexity int, postID string, branches []*model.BranchPageInput) int
+		CommentFeed     func(childComplexity int, postID string, first int, after *string) int
+		Comments        func(childComplexity int, postID string, parentID *string, first int, after *string) int
+		Post            func(childComplexity int, id string) int
+		Posts           func(childComplexity int, first int, after *string) int
 	}
 
 	Subscription struct {
@@ -116,6 +118,8 @@ type MutationResolver interface {
 	AddComment(ctx context.Context, postID string, parentID *string, text string) (*model.Comment, error)
 }
 type QueryResolver interface {
+	CommentBranches(ctx context.Context, postID string, branches []*model.BranchPageInput) ([]*model.CommentConnection, error)
+	CommentFeed(ctx context.Context, postID string, first int, after *string) (*model.CommentConnection, error)
 	Posts(ctx context.Context, first int, after *string) (*model.PostConnection, error)
 	Post(ctx context.Context, id string) (*model.Post, error)
 	Comment(ctx context.Context, id string) (*model.Comment, error)
@@ -328,6 +332,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Comment(childComplexity, args["id"].(string)), true
+	case "Query.commentBranches":
+		if e.complexity.Query.CommentBranches == nil {
+			break
+		}
+
+		args, err := ec.field_Query_commentBranches_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CommentBranches(childComplexity, args["postId"].(string), args["branches"].([]*model.BranchPageInput)), true
+	case "Query.commentFeed":
+		if e.complexity.Query.CommentFeed == nil {
+			break
+		}
+
+		args, err := ec.field_Query_commentFeed_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CommentFeed(childComplexity, args["postId"].(string), args["first"].(int), args["after"].(*string)), true
 	case "Query.comments":
 		if e.complexity.Query.Comments == nil {
 			break
@@ -381,7 +407,9 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap()
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputBranchPageInput,
+	)
 	first := true
 
 	switch opCtx.Operation.Operation {
@@ -575,6 +603,43 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_commentBranches_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "postId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["postId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "branches", ec.unmarshalNBranchPageInput2ᚕᚖexampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐBranchPageInputᚄ)
+	if err != nil {
+		return nil, err
+	}
+	args["branches"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_commentFeed_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "postId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["postId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "first", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "after", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg2
 	return args, nil
 }
 
@@ -1556,6 +1621,100 @@ func (ec *executionContext) fieldContext_PostEdge_node(_ context.Context, field 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Post", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_commentBranches(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_commentBranches,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().CommentBranches(ctx, fc.Args["postId"].(string), fc.Args["branches"].([]*model.BranchPageInput))
+		},
+		nil,
+		ec.marshalNCommentConnection2ᚕᚖexampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐCommentConnectionᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_commentBranches(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_CommentConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_CommentConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CommentConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_commentBranches_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_commentFeed(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_commentFeed,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().CommentFeed(ctx, fc.Args["postId"].(string), fc.Args["first"].(int), fc.Args["after"].(*string))
+		},
+		nil,
+		ec.marshalNCommentConnection2ᚖexampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐCommentConnection,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_commentFeed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_CommentConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_CommentConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CommentConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_commentFeed_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3373,6 +3532,51 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputBranchPageInput(ctx context.Context, obj any) (model.BranchPageInput, error) {
+	var it model.BranchPageInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["first"]; !present {
+		asMap["first"] = 20
+	}
+
+	fieldsInOrder := [...]string{"parentId", "first", "after"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "parentId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ParentID = data
+		case "first":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.First = data
+		case "after":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.After = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3805,6 +4009,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "commentBranches":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_commentBranches(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "commentFeed":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_commentFeed(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "posts":
 			field := field
 
@@ -4295,6 +4543,26 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNBranchPageInput2ᚕᚖexampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐBranchPageInputᚄ(ctx context.Context, v any) ([]*model.BranchPageInput, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.BranchPageInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNBranchPageInput2ᚖexampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐBranchPageInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNBranchPageInput2ᚖexampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐBranchPageInput(ctx context.Context, v any) (*model.BranchPageInput, error) {
+	res, err := ec.unmarshalInputBranchPageInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNComment2exampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐComment(ctx context.Context, sel ast.SelectionSet, v model.Comment) graphql.Marshaler {
 	return ec._Comment(ctx, sel, &v)
 }
@@ -4311,6 +4579,50 @@ func (ec *executionContext) marshalNComment2ᚖexampleᚗcomᚋozonᚋinternal�
 
 func (ec *executionContext) marshalNCommentConnection2exampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐCommentConnection(ctx context.Context, sel ast.SelectionSet, v model.CommentConnection) graphql.Marshaler {
 	return ec._CommentConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCommentConnection2ᚕᚖexampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐCommentConnectionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CommentConnection) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCommentConnection2ᚖexampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐCommentConnection(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNCommentConnection2ᚖexampleᚗcomᚋozonᚋinternalᚋgraphᚋmodelᚐCommentConnection(ctx context.Context, sel ast.SelectionSet, v *model.CommentConnection) graphql.Marshaler {

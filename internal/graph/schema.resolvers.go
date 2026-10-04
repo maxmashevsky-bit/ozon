@@ -7,7 +7,9 @@ package graph
 import (
 	"context"
 
+	"example.com/ozon/internal/core"
 	"example.com/ozon/internal/graph/model"
+	"example.com/ozon/internal/stream"
 )
 
 // CreatePost is the resolver for the createPost field.
@@ -47,6 +49,44 @@ func (r *mutationResolver) AddComment(ctx context.Context, postID string, parent
 		return nil, err
 	}
 	return commentModel(c), nil
+}
+
+// CommentBranches is the resolver for the commentBranches field.
+func (r *queryResolver) CommentBranches(ctx context.Context, postID string, branches []*model.BranchPageInput) ([]*model.CommentConnection, error) {
+	id, err := parseID(postID)
+	if err != nil {
+		return nil, err
+	}
+	inputs := make([]core.BranchPageInput, len(branches))
+	for i, b := range branches {
+		parent, err := parseID(b.ParentID)
+		if err != nil {
+			return nil, err
+		}
+		inputs[i] = core.BranchPageInput{ParentID: parent, Page: pageInput(b.First, b.After)}
+	}
+	pages, err := r.Service.CommentBranches(ctx, id, inputs)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*model.CommentConnection, len(pages))
+	for i, page := range pages {
+		result[i] = commentConnection(page)
+	}
+	return result, nil
+}
+
+// CommentFeed is the resolver for the commentFeed field.
+func (r *queryResolver) CommentFeed(ctx context.Context, postID string, first int, after *string) (*model.CommentConnection, error) {
+	id, err := parseID(postID)
+	if err != nil {
+		return nil, err
+	}
+	page, err := r.Service.CommentFeed(ctx, id, pageInput(first, after))
+	if err != nil {
+		return nil, err
+	}
+	return commentConnection(page), nil
 }
 
 // Posts is the resolver for the posts field.
@@ -102,11 +142,7 @@ func (r *queryResolver) Comments(ctx context.Context, postID string, parentID *s
 	if err != nil {
 		return nil, err
 	}
-	result := &model.CommentConnection{Edges: make([]*model.CommentEdge, 0, len(page.Edges)), PageInfo: &model.PageInfo{HasNextPage: page.PageInfo.HasNextPage, EndCursor: page.PageInfo.EndCursor}}
-	for _, edge := range page.Edges {
-		result.Edges = append(result.Edges, &model.CommentEdge{Cursor: edge.Cursor, Node: commentModel(edge.Node)})
-	}
-	return result, nil
+	return commentConnection(page), nil
 }
 
 // CommentAdded is the resolver for the commentAdded field.
@@ -119,6 +155,7 @@ func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) 
 	if err != nil {
 		return nil, err
 	}
+	stream.Ready(ctx)
 	out := make(chan *model.Comment)
 	go func() {
 		defer close(out)

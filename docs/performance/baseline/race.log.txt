@@ -1,0 +1,13 @@
+GOTOOLCHAIN=go1.25.0 go test -race ./...
+?   	example.com/ozon	[no test files]
+?   	example.com/ozon/cmd/server	[no test files]
+?   	example.com/ozon/internal/core	[no test files]
+ok  	example.com/ozon/internal/events	(cached)
+?   	example.com/ozon/internal/graph	[no test files]
+?   	example.com/ozon/internal/graph/model	[no test files]
+ok  	example.com/ozon/internal/httpapi	3.728s
+?   	example.com/ozon/internal/store/contract	[no test files]
+ok  	example.com/ozon/internal/store/memory	(cached)
+?   	example.com/ozon/internal/store/postgres	[no test files]
+?   	example.com/ozon/internal/store/postgres/db	[no test files]
+?   	example.com/ozon/migrations	[no test files]

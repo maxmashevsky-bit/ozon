@@ -15,6 +15,7 @@ type postState struct {
 	mu       sync.RWMutex
 	post     core.Post
 	children map[int64][]core.Comment
+	feed     []core.Comment
 }
 type Store struct {
 	hub         *events.Hub
@@ -26,7 +27,9 @@ type Store struct {
 	nextComment atomic.Int64
 }
 
-func New() *Store { return &Store{hub: events.New(true), posts: make(map[int64]*postState)} }
+func New(config ...events.Config) *Store {
+	return &Store{hub: events.New(true, config...), posts: make(map[int64]*postState)}
+}
 func (s *Store) CreatePost(ctx context.Context, in core.NewPost) (core.Post, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -144,6 +147,7 @@ func (s *Store) WithinPost(ctx context.Context, id int64, fn func(core.PostTx) e
 			parent = *c.ParentID
 		}
 		p.children[parent] = append(p.children[parent], c)
+		p.feed = append(p.feed, c)
 		s.comments.Store(c.ID, c)
 		s.hub.Publish(c)
 	}
@@ -195,4 +199,55 @@ func (t *postTx) AddComment(ctx context.Context, in core.NewComment) (core.Comme
 
 func (s *Store) Subscribe(ctx context.Context, postID int64) (<-chan core.Comment, error) {
 	return s.hub.Subscribe(ctx, postID)
+}
+
+func (s *Store) EventMetrics() map[string]float64 { return s.hub.Metrics() }
+func (s *Store) CloseSubscriptions()              { s.hub.Pause() }
+
+func (s *Store) GetComments(ctx context.Context, ids []int64) ([]core.Comment, error) {
+	result := make([]core.Comment, 0, len(ids))
+	seen := map[int64]bool{}
+	for _, id := range ids {
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		c, err := s.GetComment(ctx, id)
+		if err != nil {
+			if core.CodeOf(err) == core.NotFound {
+				continue
+			}
+			return nil, err
+		}
+		result = append(result, c)
+	}
+	return result, nil
+}
+func (s *Store) ListCommentBranches(ctx context.Context, postID int64, branches []core.BranchQuery) ([][]core.Comment, error) {
+	result := make([][]core.Comment, len(branches))
+	for i, b := range branches {
+		rows, err := s.ListComments(ctx, postID, &b.ParentID, b.After, b.Limit)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = rows
+	}
+	return result, nil
+}
+func (s *Store) ListCommentFeed(ctx context.Context, postID int64, after int64, limit int) ([]core.Comment, error) {
+	state, err := s.state(postID)
+	if err != nil {
+		return nil, err
+	}
+	state.mu.RLock()
+	defer state.mu.RUnlock()
+	if err = ctx.Err(); err != nil {
+		return nil, err
+	}
+	start := sort.Search(len(state.feed), func(i int) bool { return state.feed[i].ID > after })
+	result := make([]core.Comment, 0, limit)
+	for _, c := range state.feed[start:min(start+limit, len(state.feed))] {
+		result = append(result, clone(c))
+	}
+	return result, nil
 }

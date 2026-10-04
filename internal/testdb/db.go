@@ -27,14 +27,23 @@ func (c *Counter) TraceQueryStart(ctx context.Context, _ *pgx.Conn, data pgx.Tra
 }
 func (*Counter) TraceQueryEnd(context.Context, *pgx.Conn, pgx.TraceQueryEndData) {}
 
-func New(t *testing.T) (*pgxpool.Pool, *Counter) {
+func New(t *testing.T) (*pgxpool.Pool, *Counter)      { return newDatabase(t, true) }
+func NewEmpty(t *testing.T) (*pgxpool.Pool, *Counter) { return newDatabase(t, false) }
+func newDatabase(t *testing.T, applyMigrations bool) (*pgxpool.Pool, *Counter) {
 	t.Helper()
 	dsn := os.Getenv("TEST_DATABASE_URL")
 	if dsn == "" {
 		t.Fatal("integration tests require TEST_DATABASE_URL (use a disposable database)")
 	}
+	base, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		t.Fatal("invalid TEST_DATABASE_URL")
+	}
+	if !strings.HasSuffix(base.ConnConfig.Database, "_test") {
+		t.Fatal("integration database name must end in _test; use make verify-full")
+	}
 	ctx := context.Background()
-	admin, err := pgxpool.New(ctx, dsn)
+	admin, err := pgxpool.NewWithConfig(ctx, base)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,8 +73,10 @@ func New(t *testing.T) (*pgxpool.Pool, *Counter) {
 	config.ConnConfig.RuntimeParams["application_name"] = schema
 	counter := &Counter{}
 	config.ConnConfig.Tracer = counter
-	if err = migrations.Up(ctx, config.ConnString()); err != nil {
-		t.Fatal(err)
+	if applyMigrations {
+		if err = migrations.Up(ctx, config.ConnString()); err != nil {
+			t.Fatal(err)
+		}
 	}
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {

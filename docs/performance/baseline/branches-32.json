@@ -1,0 +1,13 @@
+{
+  "scenario": "branches",
+  "concurrency": 32,
+  "seconds": 4.164275458,
+  "warmup": "1s",
+  "attempts": 775,
+  "success": 775,
+  "successful_rps": 186.10680484912342,
+  "p50_ms": 179.145,
+  "p95_ms": 290.128,
+  "p99_ms": 302.81,
+  "errors": {}
+}

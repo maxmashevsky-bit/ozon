@@ -94,6 +94,37 @@ func (q *Queries) GetComment(ctx context.Context, id int64) (Comment, error) {
 	return i, err
 }
 
+const getComments = `-- name: GetComments :many
+SELECT id, post_id, parent_id, author_id, text, created_at FROM comments WHERE id = ANY($1::bigint[])
+`
+
+func (q *Queries) GetComments(ctx context.Context, ids []int64) ([]Comment, error) {
+	rows, err := q.db.Query(ctx, getComments, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Comment{}
+	for rows.Next() {
+		var i Comment
+		if err := rows.Scan(
+			&i.ID,
+			&i.PostID,
+			&i.ParentID,
+			&i.AuthorID,
+			&i.Text,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPost = `-- name: GetPost :one
 SELECT id, author_id, title, text, comments_allowed, created_at FROM posts WHERE id = $1
 `
@@ -110,6 +141,104 @@ func (q *Queries) GetPost(ctx context.Context, id int64) (Post, error) {
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listCommentBranches = `-- name: ListCommentBranches :many
+SELECT b.ordinality::integer AS branch_index, c.id, c.post_id, c.parent_id, c.author_id, c.text, c.created_at
+FROM unnest($1::bigint[]) WITH ORDINALITY AS b(parent_id, ordinality)
+CROSS JOIN LATERAL (
+ SELECT id, post_id, parent_id, author_id, text, created_at FROM comments
+ WHERE post_id = $2 AND parent_id = b.parent_id AND id > ($3::bigint[])[b.ordinality]
+ ORDER BY id LIMIT ($4::integer[])[b.ordinality]
+) c
+ORDER BY b.ordinality, c.id
+`
+
+type ListCommentBranchesParams struct {
+	ParentIds  []int64
+	PostID     int64
+	AfterIds   []int64
+	PageLimits []int32
+}
+
+type ListCommentBranchesRow struct {
+	BranchIndex int32
+	ID          int64
+	PostID      int64
+	ParentID    pgtype.Int8
+	AuthorID    string
+	Text        string
+	CreatedAt   pgtype.Timestamptz
+}
+
+func (q *Queries) ListCommentBranches(ctx context.Context, arg ListCommentBranchesParams) ([]ListCommentBranchesRow, error) {
+	rows, err := q.db.Query(ctx, listCommentBranches,
+		arg.ParentIds,
+		arg.PostID,
+		arg.AfterIds,
+		arg.PageLimits,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCommentBranchesRow{}
+	for rows.Next() {
+		var i ListCommentBranchesRow
+		if err := rows.Scan(
+			&i.BranchIndex,
+			&i.ID,
+			&i.PostID,
+			&i.ParentID,
+			&i.AuthorID,
+			&i.Text,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCommentFeed = `-- name: ListCommentFeed :many
+SELECT id, post_id, parent_id, author_id, text, created_at FROM comments WHERE post_id = $1 AND id > $2 ORDER BY id LIMIT $3
+`
+
+type ListCommentFeedParams struct {
+	PostID int64
+	ID     int64
+	Limit  int32
+}
+
+func (q *Queries) ListCommentFeed(ctx context.Context, arg ListCommentFeedParams) ([]Comment, error) {
+	rows, err := q.db.Query(ctx, listCommentFeed, arg.PostID, arg.ID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Comment{}
+	for rows.Next() {
+		var i Comment
+		if err := rows.Scan(
+			&i.ID,
+			&i.PostID,
+			&i.ParentID,
+			&i.AuthorID,
+			&i.Text,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listPosts = `-- name: ListPosts :many
@@ -244,6 +373,24 @@ func (q *Queries) LockPost(ctx context.Context, id int64) (Post, error) {
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const lockPostCreation = `-- name: LockPostCreation :exec
+SELECT pg_advisory_xact_lock(19483726)
+`
+
+func (q *Queries) LockPostCreation(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, lockPostCreation)
+	return err
+}
+
+const ready = `-- name: Ready :exec
+SELECT id FROM posts LIMIT 0
+`
+
+func (q *Queries) Ready(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, ready)
+	return err
 }
 
 const setCommentsAllowed = `-- name: SetCommentsAllowed :one

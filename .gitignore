@@ -3,3 +3,6 @@
 coverage*
 *.log
 .DS_Store
+/.local/
+/.artifacts/
+__pycache__/

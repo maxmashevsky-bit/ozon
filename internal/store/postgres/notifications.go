@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Each application instance uses one dedicated LISTEN connection, separate from
@@ -25,7 +26,7 @@ func (s *Store) StartNotifications(ctx context.Context, logger *slog.Logger) (fu
 	connect := func() (*pgx.Conn, error) {
 		attempt, stop := context.WithTimeout(ctx, 5*time.Second)
 		defer stop()
-		conn, err := pgx.ConnectConfig(attempt, s.pool.Config().ConnConfig.Copy())
+		conn, err := pgx.ConnectConfig(attempt, listenerConfig(s.pool))
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +54,7 @@ func (s *Store) StartNotifications(ctx context.Context, logger *slog.Logger) (fu
 				if ctx.Err() != nil {
 					return
 				}
-				logger.ErrorContext(ctx, "comment listener disconnected; subscribers must reconnect", "error", err)
+				logger.ErrorContext(ctx, "comment listener disconnected; subscribers must reconnect")
 				for {
 					timer := time.NewTimer(time.Second)
 					select {
@@ -66,7 +67,7 @@ func (s *Store) StartNotifications(ctx context.Context, logger *slog.Logger) (fu
 					if err == nil {
 						break
 					}
-					logger.ErrorContext(ctx, "reconnect comment listener", "error", err)
+					logger.ErrorContext(ctx, "reconnect comment listener")
 				}
 				continue
 			}
@@ -81,7 +82,7 @@ func (s *Store) StartNotifications(ctx context.Context, logger *slog.Logger) (fu
 			c, err := s.GetComment(read, payload.ID)
 			stop()
 			if err != nil {
-				logger.ErrorContext(ctx, "read comment notification", "error", err)
+				logger.ErrorContext(ctx, "read comment notification")
 				s.hub.Pause()
 				s.hub.Resume()
 				continue
@@ -96,6 +97,15 @@ func closeListener(conn *pgx.Conn, logger *slog.Logger) {
 	cleanup, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := conn.Close(cleanup); err != nil {
-		logger.Error("close comment listener", "error", err)
+		logger.Error("close comment listener")
 	}
+}
+
+func listenerConfig(pool *pgxpool.Pool) *pgx.ConnConfig {
+	cfg := pool.Config().ConnConfig.Copy()
+	// Keep an identifiable listener for operations without logging its DSN.
+	if cfg.RuntimeParams["application_name"] == "ozon-api" {
+		cfg.RuntimeParams["application_name"] = "ozon-listener"
+	}
+	return cfg
 }

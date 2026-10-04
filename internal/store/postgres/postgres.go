@@ -20,8 +20,8 @@ type Store struct {
 	q    *db.Queries
 }
 
-func New(pool *pgxpool.Pool) *Store {
-	return &Store{pool: pool, q: db.New(pool), hub: events.New(false)}
+func New(pool *pgxpool.Pool, config ...events.Config) *Store {
+	return &Store{pool: pool, q: db.New(pool), hub: events.New(false, config...)}
 }
 func post(p db.Post) core.Post {
 	return core.Post{ID: p.ID, AuthorID: p.AuthorID, Title: p.Title, Text: p.Text, CommentsAllowed: p.CommentsAllowed, CreatedAt: p.CreatedAt.Time.UTC()}
@@ -50,7 +50,15 @@ func queryError(err error, entity string) error {
 	return fmt.Errorf("%s query: %w", entity, err)
 }
 func (s *Store) CreatePost(ctx context.Context, in core.NewPost) (core.Post, error) {
-	p, err := s.q.CreatePost(ctx, db.CreatePostParams{AuthorID: in.AuthorID, Title: in.Title, Text: in.Text})
+	var p db.Post
+	err := s.transact(ctx, func(q *db.Queries) error {
+		if err := q.LockPostCreation(ctx); err != nil {
+			return err
+		}
+		var err error
+		p, err = q.CreatePost(ctx, db.CreatePostParams{AuthorID: in.AuthorID, Title: in.Title, Text: in.Text})
+		return err
+	})
 	return post(p), queryError(err, "post")
 }
 func (s *Store) GetPost(ctx context.Context, id int64) (core.Post, error) {
@@ -89,7 +97,16 @@ func (s *Store) ListComments(ctx context.Context, postID int64, parentID *int64,
 	}
 	return result, nil
 }
-func (s *Store) WithinPost(ctx context.Context, id int64, fn func(core.PostTx) error) (err error) {
+func (s *Store) WithinPost(ctx context.Context, id int64, fn func(core.PostTx) error) error {
+	return s.transact(ctx, func(q *db.Queries) error {
+		p, err := q.LockPost(ctx, id)
+		if err != nil {
+			return queryError(err, "post")
+		}
+		return fn(&postTx{q: q, post: post(p)})
+	})
+}
+func (s *Store) transact(ctx context.Context, fn func(*db.Queries) error) (err error) {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
 		return fmt.Errorf("begin post transaction: %w", err)
@@ -102,12 +119,7 @@ func (s *Store) WithinPost(ctx context.Context, id int64, fn func(core.PostTx) e
 			err = errors.Join(err, fmt.Errorf("rollback post transaction: %w", rollbackErr))
 		}
 	}()
-	q := s.q.WithTx(tx)
-	p, err := q.LockPost(ctx, id)
-	if err != nil {
-		return queryError(err, "post")
-	}
-	if err = fn(&postTx{q: q, post: post(p)}); err != nil {
+	if err = fn(s.q.WithTx(tx)); err != nil {
 		return err
 	}
 	if err = tx.Commit(ctx); err != nil {
@@ -144,4 +156,52 @@ func (t *postTx) SetCommentsAllowed(ctx context.Context, allowed bool) (core.Pos
 
 func (s *Store) Subscribe(ctx context.Context, postID int64) (<-chan core.Comment, error) {
 	return s.hub.Subscribe(ctx, postID)
+}
+
+func (s *Store) EventMetrics() map[string]float64 { return s.hub.Metrics() }
+func (s *Store) CloseSubscriptions()              { s.hub.Pause() }
+
+func (s *Store) Ready(ctx context.Context) error { return s.q.Ready(ctx) }
+func (s *Store) GetComments(ctx context.Context, ids []int64) ([]core.Comment, error) {
+	rows, err := s.q.GetComments(ctx, ids)
+	if err != nil {
+		return nil, queryError(err, "parents")
+	}
+	result := make([]core.Comment, 0, len(rows))
+	for _, c := range rows {
+		result = append(result, comment(c))
+	}
+	return result, nil
+}
+func (s *Store) ListCommentFeed(ctx context.Context, postID, after int64, limit int) ([]core.Comment, error) {
+	rows, err := s.q.ListCommentFeed(ctx, db.ListCommentFeedParams{PostID: postID, ID: after, Limit: int32(limit)})
+	if err != nil {
+		return nil, queryError(err, "comment feed")
+	}
+	result := make([]core.Comment, 0, len(rows))
+	for _, c := range rows {
+		result = append(result, comment(c))
+	}
+	return result, nil
+}
+func (s *Store) ListCommentBranches(ctx context.Context, postID int64, branches []core.BranchQuery) ([][]core.Comment, error) {
+	params := db.ListCommentBranchesParams{PostID: postID}
+	for _, b := range branches {
+		params.ParentIds = append(params.ParentIds, b.ParentID)
+		params.AfterIds = append(params.AfterIds, b.After)
+		params.PageLimits = append(params.PageLimits, int32(b.Limit))
+	}
+	rows, err := s.q.ListCommentBranches(ctx, params)
+	if err != nil {
+		return nil, queryError(err, "comment branches")
+	}
+	result := make([][]core.Comment, len(branches))
+	for i := range result {
+		result[i] = []core.Comment{}
+	}
+	for _, c := range rows {
+		index := int(c.BranchIndex) - 1
+		result[index] = append(result[index], comment(db.Comment{ID: c.ID, PostID: c.PostID, ParentID: c.ParentID, AuthorID: c.AuthorID, Text: c.Text, CreatedAt: c.CreatedAt}))
+	}
+	return result, nil
 }

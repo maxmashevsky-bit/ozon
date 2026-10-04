@@ -1,0 +1,68 @@
+[
+  {
+    "BlockIO": "0B / 0B",
+    "CPUPerc": "110.00%",
+    "Container": "ozon-upgrade-baseline-app",
+    "ID": "2cc2c1784c26",
+    "MemPerc": "2.47%",
+    "MemUsage": "12.62MiB / 512MiB",
+    "Name": "ozon-upgrade-baseline-app",
+    "NetIO": "2.83MB / 1.7MB",
+    "PIDs": "13"
+  },
+  {
+    "BlockIO": "119kB / 658MB",
+    "CPUPerc": "128.57%",
+    "Container": "ozon-upgrade-baseline-db",
+    "ID": "1ac163e254f2",
+    "MemPerc": "7.33%",
+    "MemUsage": "75.09MiB / 1GiB",
+    "Name": "ozon-upgrade-baseline-db",
+    "NetIO": "24.4MB / 172MB",
+    "PIDs": "16"
+  },
+  {
+    "BlockIO": "0B / 0B",
+    "CPUPerc": "109.17%",
+    "Container": "ozon-upgrade-baseline-app",
+    "ID": "2cc2c1784c26",
+    "MemPerc": "2.53%",
+    "MemUsage": "12.96MiB / 512MiB",
+    "Name": "ozon-upgrade-baseline-app",
+    "NetIO": "13.2MB / 7.9MB",
+    "PIDs": "14"
+  },
+  {
+    "BlockIO": "119kB / 692MB",
+    "CPUPerc": "128.92%",
+    "Container": "ozon-upgrade-baseline-db",
+    "ID": "1ac163e254f2",
+    "MemPerc": "7.48%",
+    "MemUsage": "76.59MiB / 1GiB",
+    "Name": "ozon-upgrade-baseline-db",
+    "NetIO": "27.7MB / 177MB",
+    "PIDs": "16"
+  },
+  {
+    "BlockIO": "0B / 0B",
+    "CPUPerc": "0.00%",
+    "Container": "ozon-upgrade-baseline-app",
+    "ID": "2cc2c1784c26",
+    "MemPerc": "2.48%",
+    "MemUsage": "12.71MiB / 512MiB",
+    "Name": "ozon-upgrade-baseline-app",
+    "NetIO": "16.3MB / 9.74MB",
+    "PIDs": "15"
+  },
+  {
+    "BlockIO": "119kB / 707MB",
+    "CPUPerc": "0.05%",
+    "Container": "ozon-upgrade-baseline-db",
+    "ID": "1ac163e254f2",
+    "MemPerc": "7.45%",
+    "MemUsage": "76.28MiB / 1GiB",
+    "Name": "ozon-upgrade-baseline-db",
+    "NetIO": "29.1MB / 180MB",
+    "PIDs": "16"
+  }
+]

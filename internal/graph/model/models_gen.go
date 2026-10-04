@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+type BranchPageInput struct {
+	ParentID string  `json:"parentId"`
+	First    int     `json:"first"`
+	After    *string `json:"after,omitempty"`
+}
+
 type Comment struct {
 	ID        string    `json:"id"`
 	PostID    string    `json:"postId"`

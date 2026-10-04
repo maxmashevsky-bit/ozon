@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"example.com/ozon/internal/auth"
 	"example.com/ozon/internal/core"
 	"example.com/ozon/internal/store/memory"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -60,7 +61,7 @@ func errorCode(t *testing.T, r response, want string) {
 	}
 }
 func newHandler() http.Handler {
-	return New(core.NewService(memory.New()), slog.New(slog.NewTextHandler(io.Discard, nil)))
+	return New(core.NewService(memory.New()), slog.New(slog.NewTextHandler(io.Discard, nil)), Options{Auth: auth.DevHeader()})
 }
 
 func TestGraphQLFlow(t *testing.T) {
@@ -172,7 +173,7 @@ func (brokenStore) GetPost(context.Context, int64) (core.Post, error) {
 	return core.Post{}, errors.New("SELECT secret FROM posts; postgres://admin:password@db")
 }
 func TestStorageErrorsAreSanitized(t *testing.T) {
-	h := New(core.NewService(brokenStore{}), slog.New(slog.NewTextHandler(io.Discard, nil)))
+	h := New(core.NewService(brokenStore{}), slog.New(slog.NewTextHandler(io.Discard, nil)), Options{Auth: auth.DevHeader()})
 	r := request(t, h, "", `{post(id:"1"){id}}`, nil)
 	errorCode(t, r, "UNAVAILABLE")
 	if r.Errors[0].Message != "storage temporarily unavailable" {

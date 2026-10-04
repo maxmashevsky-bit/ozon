@@ -14,11 +14,11 @@ const (
 	MaxCost   = 5000
 )
 
-type documentLimits struct{}
+type documentLimits struct{ Depth, Fields, Cost int }
 
 func (documentLimits) ExtensionName() string                   { return "DocumentLimits" }
 func (documentLimits) Validate(graphql.ExecutableSchema) error { return nil }
-func (documentLimits) MutateOperationContext(_ context.Context, op *graphql.OperationContext) *gqlerror.Error {
+func (limits documentLimits) MutateOperationContext(_ context.Context, op *graphql.OperationContext) *gqlerror.Error {
 	if len(op.Doc.Operations) != 1 {
 		return &gqlerror.Error{Message: "exactly one operation per document is required", Extensions: map[string]any{"code": "BAD_USER_INPUT"}}
 	}
@@ -27,7 +27,7 @@ func (documentLimits) MutateOperationContext(_ context.Context, op *graphql.Oper
 	// with early cutoffs so fragment multiplication cannot bypass the budget.
 	var walk func(ast.SelectionSet, int, int) (int, bool)
 	walk = func(set ast.SelectionSet, depth, multiplier int) (int, bool) {
-		if depth > MaxDepth {
+		if depth > limits.Depth {
 			return 0, false
 		}
 		cost := 0
@@ -35,12 +35,12 @@ func (documentLimits) MutateOperationContext(_ context.Context, op *graphql.Oper
 			switch field := selection.(type) {
 			case *ast.Field:
 				fields++
-				if fields > MaxFields {
+				if fields > limits.Fields {
 					return 0, false
 				}
 				cost += multiplier
 				childMultiplier := multiplier
-				if field.Name == "posts" || field.Name == "comments" {
+				if field.Name == "posts" || field.Name == "comments" || field.Name == "commentFeed" {
 					first, err := graphql.UnmarshalInt(field.ArgumentMap(op.Variables)["first"])
 					if err != nil {
 						return 0, false
@@ -50,7 +50,36 @@ func (documentLimits) MutateOperationContext(_ context.Context, op *graphql.Oper
 					}
 					childMultiplier *= first
 				}
-				if childMultiplier > MaxCost {
+				if field.Name == "commentBranches" {
+					branches, ok := field.ArgumentMap(op.Variables)["branches"].([]any)
+					if !ok || len(branches) < 1 || len(branches) > 20 {
+						return 0, false
+					}
+					total := 0
+					for _, value := range branches {
+						b, ok := value.(map[string]any)
+						if !ok {
+							return 0, false
+						}
+						first := 20
+						if n, ok := b["first"]; ok {
+							var err error
+							first, err = graphql.UnmarshalInt(n)
+							if err != nil {
+								return 0, false
+							}
+						}
+						if first < 1 || first > 100 {
+							return 0, false
+						}
+						total += first
+					}
+					if total > 500 {
+						return 0, false
+					}
+					childMultiplier *= total
+				}
+				if childMultiplier > limits.Cost {
 					return 0, false
 				}
 				if len(field.SelectionSet) > 0 {
@@ -62,7 +91,7 @@ func (documentLimits) MutateOperationContext(_ context.Context, op *graphql.Oper
 				}
 			case *ast.FragmentSpread:
 				fields++
-				if fields > MaxFields {
+				if fields > limits.Fields {
 					return 0, false
 				}
 				n, ok := walk(field.Definition.SelectionSet, depth, multiplier)
@@ -72,7 +101,7 @@ func (documentLimits) MutateOperationContext(_ context.Context, op *graphql.Oper
 				cost += n
 			case *ast.InlineFragment:
 				fields++
-				if fields > MaxFields {
+				if fields > limits.Fields {
 					return 0, false
 				}
 				n, ok := walk(field.SelectionSet, depth, multiplier)
@@ -81,7 +110,7 @@ func (documentLimits) MutateOperationContext(_ context.Context, op *graphql.Oper
 				}
 				cost += n
 			}
-			if cost > MaxCost {
+			if cost > limits.Cost {
 				return 0, false
 			}
 		}

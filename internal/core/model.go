@@ -32,7 +32,19 @@ type NewComment struct {
 
 // WithinPost serializes changes to a post and its comments. An error rolls back
 // all writes. Callbacks must use the transaction, not reenter the store.
+type BranchPageInput struct {
+	ParentID int64
+	Page     PageInput
+}
+type BranchQuery struct {
+	ParentID int64
+	After    int64
+	Limit    int
+}
 type Store interface {
+	GetComments(context.Context, []int64) ([]Comment, error)
+	ListCommentBranches(context.Context, int64, []BranchQuery) ([][]Comment, error)
+	ListCommentFeed(context.Context, int64, int64, int) ([]Comment, error)
 	Subscribe(context.Context, int64) (<-chan Comment, error)
 	CreatePost(context.Context, NewPost) (Post, error)
 	GetPost(context.Context, int64) (Post, error)

@@ -1,0 +1,76 @@
+package main
+
+import (
+ "bytes"
+ "context"
+ "encoding/json"
+ "flag"
+ "fmt"
+ "io"
+ "net/http"
+ "os"
+ "sort"
+ "strings"
+ "sync"
+ "sync/atomic"
+ "time"
+)
+
+type Result struct {
+ Scenario string `json:"scenario"`
+ Concurrency int `json:"concurrency"`
+ Duration float64 `json:"seconds"`
+ Warmup string `json:"warmup"`
+ Attempts int64 `json:"attempts"`
+ Success int64 `json:"success"`
+ RPS float64 `json:"successful_rps"`
+ P50 float64 `json:"p50_ms"`
+ P95 float64 `json:"p95_ms"`
+ P99 float64 `json:"p99_ms"`
+ Errors map[string]int64 `json:"errors"`
+}
+func main(){
+ target:=flag.String("url","http://localhost:8080/query","comma-separated HTTP GraphQL URLs")
+ scenario:=flag.String("scenario","read","read, mixed, uniform, hot, branches, batch")
+ workers:=flag.Int("concurrency",8,"parallel operations")
+ duration:=flag.Duration("duration",5*time.Second,"measurement time")
+ warmup:=flag.Duration("warmup",time.Second,"warmup time")
+ tokenFile:=flag.String("token-file","","bearer token file")
+ output:=flag.String("out","","JSON result path")
+ flag.Parse()
+ token:="";if *tokenFile!=""{b,e:=os.ReadFile(*tokenFile);if e!=nil{panic(e)};token=strings.TrimSpace(string(b))}
+ targets:=strings.Split(*target,",")
+ client:=&http.Client{Transport:&http.Transport{MaxIdleConns:512,MaxIdleConnsPerHost:256},Timeout:12*time.Second}
+ run:=func(span time.Duration)Result{
+  stop:=time.Now().Add(span);var sequence atomic.Int64;var mu sync.Mutex;var latencies []float64
+  result:=Result{Scenario:*scenario,Concurrency:*workers,Warmup:warmup.String(),Errors:map[string]int64{}}
+  start:=time.Now();var wg sync.WaitGroup
+  for w:=0;w<*workers;w++{wg.Add(1);go func(){defer wg.Done()
+   for time.Now().Before(stop){
+    n:=sequence.Add(1);post:=n%100+1
+    q:=`query{posts(first:20){edges{node{id title}}}}`
+    if *scenario=="hot" || *scenario=="uniform" || (*scenario=="mixed" && n%5==0){if *scenario=="hot"{post=1};q=fmt.Sprintf(`mutation{addComment(postId:"%d",text:"load"){id}}`,post)
+    }else if *scenario=="mixed" || (*scenario=="read" && n%2==0){q=fmt.Sprintf(`{comments(postId:"%d",first:20){edges{node{id text}}}}`,post)
+    }else if *scenario=="branches"{var b strings.Builder;b.WriteByte('{');for i:=1;i<=20;i++{fmt.Fprintf(&b,`r%d:comments(postId:"1",parentId:"%d",first:20){edges{node{id}}} `,i,i)};b.WriteByte('}');q=b.String()
+    }else if *scenario=="batch"{var branches []string;for i:=1;i<=20;i++{branches=append(branches,fmt.Sprintf(`{parentId:"%d",first:20}`,i))};q=`{commentBranches(postId:"1",branches:[`+strings.Join(branches,",")+`]){edges{node{id}}}}`}
+    body,_:=json.Marshal(map[string]string{"query":q})
+    req,e:=http.NewRequestWithContext(context.Background(),"POST",targets[int(n)%len(targets)],bytes.NewReader(body));if e!=nil{panic(e)}
+    req.Header.Set("Content-Type","application/json");if token!=""{req.Header.Set("Authorization","Bearer "+token)}else{req.Header.Set("X-User-ID","bench")}
+    begin:=time.Now();response,e:=client.Do(req);reason:=""
+    if e!=nil{reason="transport"}else{
+     var payload struct{Errors []struct{Extensions struct{Code string `json:"code"`} `json:"extensions"`} `json:"errors"`;Data json.RawMessage `json:"data"`}
+     data,readErr:=io.ReadAll(io.LimitReader(response.Body,8<<20));response.Body.Close()
+     if response.StatusCode!=200{reason=fmt.Sprintf("http_%d",response.StatusCode)}else if readErr!=nil || json.Unmarshal(data,&payload)!=nil{reason="decode"}else if len(payload.Errors)>0{reason=payload.Errors[0].Extensions.Code;if reason==""{reason="graphql"}}else if len(payload.Data)==0{reason="empty_data"}
+    }
+    elapsed:=float64(time.Since(begin).Microseconds())/1000
+    mu.Lock();result.Attempts++;if reason==""{result.Success++;latencies=append(latencies,elapsed)}else{result.Errors[reason]++};mu.Unlock()
+   }
+  }()};wg.Wait();result.Duration=time.Since(start).Seconds();result.RPS=float64(result.Success)/result.Duration
+  sort.Float64s(latencies);percentile:=func(p float64)float64{if len(latencies)==0{return 0};return latencies[int(float64(len(latencies)-1)*p)]}
+  result.P50=percentile(.5);result.P95=percentile(.95);result.P99=percentile(.99);return result
+ }
+ if *warmup>0{run(*warmup)}
+ result:=run(*duration);data,err:=json.MarshalIndent(result,"","  ");if err!=nil{panic(err)};fmt.Println(string(data))
+ if *output!=""{if err=os.WriteFile(*output,append(data,'\n'),0644);err!=nil{panic(err)}}
+ if result.Success==0{os.Exit(1)}
+}

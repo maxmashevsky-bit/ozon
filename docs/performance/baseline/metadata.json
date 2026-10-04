@@ -1,0 +1,30 @@
+{
+  "commit": "7ed5139670adb3fa7215e835c5be27edec853325",
+  "date": "2026-10-04",
+  "route": "direct HTTP, single replica",
+  "application": {
+    "cpu": 1,
+    "memory": "512m",
+    "pool": 20
+  },
+  "database": {
+    "cpu": 2,
+    "memory": "1g",
+    "image": "postgres:17-alpine"
+  },
+  "duration": "4s",
+  "warmup": "1s",
+  "repeats": 1,
+  "concurrency": [
+    1,
+    8,
+    32
+  ],
+  "fixture": {
+    "posts": 100,
+    "roots": 10000,
+    "replies": 40000
+  },
+  "setup": "application stopped while resetting fixture; loopback HTTP; X-User-ID=bench",
+  "limitations": "one exploratory baseline repeat; no baseline pool telemetry"
+}

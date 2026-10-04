@@ -1,25 +1,47 @@
 GO = GOTOOLCHAIN=go1.25.0 go
+PYTHON ?= python3
 
-.PHONY: run generate test race integration check build
+.PHONY: run generate test race integration check build tools format-check generate-check verify verify-full up up-scale seed clean-seed down load-smoke load-full
 run:
-	$(GO) run ./cmd/server -storage=memory
+	$(PYTHON) scripts/manage.py init
+	JWT_SECRET_FILE=.local/jwt.key $(GO) run ./cmd/server -storage=memory
 
 generate:
 	$(GO) generate ./...
 
+generate-check:
+	$(PYTHON) scripts/check-generated.py
+
+format-check:
+	@test -z "$$(gofmt -l $$(git ls-files '*.go') $$(git ls-files --others --exclude-standard '*.go'))" || (echo 'Run gofmt on Go sources'; exit 1)
+
 test:
 	$(GO) test ./...
-
 race:
 	$(GO) test -race ./...
-
 integration:
-	@test -n "$(TEST_DATABASE_URL)" || (echo 'Set TEST_DATABASE_URL to a disposable PostgreSQL database'; exit 1)
+	@test -n "$(TEST_DATABASE_URL)" || (echo 'Use make verify-full to prepare an isolated PostgreSQL database'; exit 1)
 	$(GO) test -race -tags=integration ./...
-
-check:
+check: format-check
 	$(GO) vet ./...
 	$(GO) test ./...
+verify: format-check
+	$(GO) vet ./...
+	$(GO) test -race ./...
+	$(MAKE) generate-check
+verify-full: verify tools
+	$(PYTHON) scripts/verify_system.py
 
 build:
 	$(GO) build -o bin/server ./cmd/server
+tools:
+	$(GO) build -o bin/bench ./cmd/bench
+	$(GO) build -o bin/watch ./cmd/watch
+	$(GO) build -o bin/token ./cmd/token
+
+up up-scale seed clean-seed down:
+	$(PYTHON) scripts/manage.py $@
+load-smoke: tools
+	$(PYTHON) scripts/load.py smoke
+load-full: tools
+	$(PYTHON) scripts/load.py full

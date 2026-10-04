@@ -55,3 +55,39 @@ func TestSQLCountDoesNotGrowWithPageSize(t *testing.T) {
 		}
 	}
 }
+
+func TestBatchBranchesSQLCount(t *testing.T) {
+	pool, counter := testdb.New(t)
+	s := core.NewService(postgres.New(pool))
+	ctx := context.Background()
+	p, err := s.CreatePost(ctx, "a", "t", "x")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ids := make([]int64, 20)
+	for i := range ids {
+		root, err := s.AddComment(ctx, "a", p.ID, nil, "root")
+		if err != nil {
+			t.Fatal(err)
+		}
+		ids[i] = root.ID
+		for j := 0; j < 3; j++ {
+			if _, err = s.AddComment(ctx, "a", p.ID, &root.ID, "child"); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	h := New(s, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	for _, n := range []int{1, 10, 20} {
+		branches := make([]map[string]any, n)
+		for i := range branches {
+			branches[i] = map[string]any{"parentId": fmt.Sprint(ids[i]), "first": 2}
+		}
+		counter.Selects.Store(0)
+		result := request(t, h, "", `query($p:ID!,$b:[BranchPageInput!]!){commentBranches(postId:$p,branches:$b){edges{node{id}}pageInfo{hasNextPage endCursor}}}`, map[string]any{"p": fmt.Sprint(p.ID), "b": branches})
+		noErrors(t, result)
+		if got := counter.Selects.Load(); got != 3 {
+			t.Fatalf("%d branches used %d SELECTs", n, got)
+		}
+	}
+}

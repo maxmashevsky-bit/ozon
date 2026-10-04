@@ -3,3 +3,6 @@
 bin
 coverage*
 *.log
+.local
+.artifacts
+__pycache__

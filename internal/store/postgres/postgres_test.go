@@ -164,3 +164,109 @@ func TestListenerReconnectsAndClosesExistingStreams(t *testing.T) {
 		t.Fatal("new subscription did not receive event")
 	}
 }
+
+func TestPagesDuringWrites(t *testing.T) {
+	pool, _ := testdb.New(t)
+	contract.PagesDuringWrites(t, postgres.New(pool))
+}
+
+func TestUncommittedCommentCannotBeOvertaken(t *testing.T) {
+	pool, _ := testdb.New(t)
+	store := postgres.New(pool)
+	s := core.NewService(store)
+	ctx := context.Background()
+	p, err := s.CreatePost(ctx, "a", "t", "x")
+	if err != nil {
+		t.Fatal(err)
+	}
+	allocated := make(chan core.Comment, 1)
+	release := make(chan struct{})
+	finished := make(chan error, 1)
+	go func() {
+		finished <- store.WithinPost(ctx, p.ID, func(tx core.PostTx) error {
+			c, err := tx.AddComment(ctx, core.NewComment{PostID: p.ID, AuthorID: "a", Text: "not committed yet"})
+			if err != nil {
+				return err
+			}
+			allocated <- c
+			<-release
+			return nil
+		})
+	}()
+	first := <-allocated
+	// Avoid leaving a row lock held even if an assertion fails.
+	defer func() {
+		select {
+		case <-release:
+		default:
+			close(release)
+		}
+	}()
+	short, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
+	_, err = s.AddComment(short, "a", p.ID, nil, "overtake")
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("later ID could overtake uncommitted comment: %v", err)
+	}
+	empty, err := s.Comments(ctx, p.ID, nil, core.PageInput{First: 1})
+	if err != nil || len(empty.Edges) != 0 {
+		t.Fatalf("uncommitted row visible: %+v %v", empty, err)
+	}
+	close(release)
+	if err = <-finished; err != nil {
+		t.Fatal(err)
+	}
+	second, err := s.AddComment(ctx, "a", p.ID, nil, "next")
+	if err != nil {
+		t.Fatal(err)
+	}
+	page, err := s.Comments(ctx, p.ID, nil, core.PageInput{First: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if page.Edges[0].Node.ID != first.ID {
+		t.Fatal("first committed row skipped")
+	}
+	next, err := s.Comments(ctx, p.ID, nil, core.PageInput{First: 1, After: *page.PageInfo.EndCursor})
+	if err != nil || next.Edges[0].Node.ID != second.ID {
+		t.Fatal("second row skipped", err)
+	}
+}
+
+func TestUncommittedPostCannotBeOvertaken(t *testing.T) {
+	pool, _ := testdb.New(t)
+	ctx := context.Background()
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback(ctx)
+	if _, err = tx.Exec(ctx, "SELECT pg_advisory_xact_lock(19483726)"); err != nil {
+		t.Fatal(err)
+	}
+	var first int64
+	if err = tx.QueryRow(ctx, "INSERT INTO posts(author_id,title,text) VALUES('a','held','x') RETURNING id").Scan(&first); err != nil {
+		t.Fatal(err)
+	}
+	service := core.NewService(postgres.New(pool))
+	limited, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
+	if _, err = service.CreatePost(limited, "a", "later", "x"); !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("post bypassed commit-order lock: %v", err)
+	}
+	if err = tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	second, err := service.CreatePost(ctx, "a", "later", "x")
+	if err != nil {
+		t.Fatal(err)
+	}
+	page, err := service.Posts(ctx, core.PageInput{First: 1})
+	if err != nil || len(page.Edges) != 1 || page.Edges[0].Node.ID != first {
+		t.Fatalf("first post skipped: %v", err)
+	}
+	page, err = service.Posts(ctx, core.PageInput{First: 1, After: *page.PageInfo.EndCursor})
+	if err != nil || len(page.Edges) != 1 || page.Edges[0].Node.ID != second.ID {
+		t.Fatalf("second post skipped: %v", err)
+	}
+}
