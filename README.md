@@ -1,6 +1,6 @@
 # Техническое задание Озон
 
-Go GraphQL-сервис постов и комментариев. [Исходное ТЗ](Техническое%20задание%20Озон.docx), [проверки и соответствие требованиям](docs/verification.md), [измерения](docs/performance/README.md), [архитектурные решения](docs/decisions.md).
+Go GraphQL-сервис постов и комментариев. [Исходное ТЗ](Техническое%20задание%20Озон.docx), [проверки и соответствие требованиям](docs/verification.md), [новые длительные измерения](docs/performance/reliability-2026-10-04/README.md), [исторические короткие измерения](docs/performance/README.md), [архитектурные решения](docs/decisions.md).
 
 ## Быстрый запуск
 
@@ -23,7 +23,7 @@ GO_IMAGE=mirror.gcr.io/library/golang:1.25-alpine \
 NGINX_IMAGE=mirror.gcr.io/library/nginx:1.28-alpine make up-scale
 ```
 
-`make seed` повторно не добавляет уже записанный набор. `clean-seed` проверяет ID, автора `demo` и заголовок; посты пользователя не очищаются. Не удаляйте `.local/` при сохранённом volume: в ней находятся его учётные данные. Для проверки инфраструктуры используются отдельные проекты, БД и volumes.
+`make seed` сверяет состояние с API и атомарно записывает прогресс в `.local/seed.json`; повторный запуск продолжает прерванное заполнение, в том числе если запись в БД прошла, а ответ или сохранение файла потерялись. Старый список ID автоматически распознаётся. `clean-seed` проверяет ID, автора `demo` и точный заголовок; если под демонстрационным постом есть чужие комментарии, очистка останавливается и сохраняет состояние для повторного запуска. Посты и комментарии пользователя не удаляются. Не удаляйте `.local/` при сохранённом volume: в ней находятся его учётные данные. Для проверки инфраструктуры используются отдельные проекты, БД и volumes.
 
 ## Личность и токены
 
@@ -109,7 +109,7 @@ PostgreSQL-триггер после commit отправляет схему и I
 make tools
 # ID автоматически записаны make seed:
 bin/watch -url http://localhost:8080 \
-  -post "$(python3 -c 'import json; print(json.load(open(".local/seed.json"))[0])')" \
+  -post "$(python3 -c 'import json; print(json.load(open(".local/seed.json"))["posts"]["0"])')" \
   -token-file .local/demo.token -duration 10m
 ```
 
@@ -147,13 +147,16 @@ bin/watch -url http://localhost:8080 \
 make verify       # форматирование, vet, race, воспроизводимость генерации
 make verify-full  # выше + Docker build, отдельная PostgreSQL, 3 реплики, системные сценарии
 make load-smoke   # 1/3 реплики, шесть сценариев, короткие прогоны
-make load-full    # 1/8/32 клиента, 3 повтора, 1/3 реплики; несколько минут
+make load-full    # семь сценариев, 8 клиентов, 2 повтора по 30s, 1/3 реплики; ручной длинный запуск
+make load-soak    # длительная SSE-нагрузка, 64 подписчика на 1/3 репликах
+make load-protected # отдельная проверка штатных rate limits
+python3 scripts/load.py full --scenarios mixed,subscriptions --concurrency 8,32 --duration 45s --warmup 5s --repeats 2 --replicas 1,3
 make generate     # редактировать schema.graphqls / queries.sql, затем генераторы
 ```
 
 Проверки сами выделяют отдельные порты/проекты/volumes, ждут готовности polling с deadline, выдают токены и удаляют свою инфраструктуру. Рабочий volume не используется. Интеграционный helper дополнительно требует имя БД с суффиксом `_test`. Ошибка завершает команду ненулевым кодом; диагностика остаётся в `.artifacts/`. Секретная поддиректория удаляется после прогона и не входит в CI artifacts. `make integration` оставлен для явно переданного `TEST_DATABASE_URL`; обычный путь — `verify-full`.
 
-CI `.github/workflows/verify.yml` автоматически выполняет `verify-full` на push/PR, включая PostgreSQL с race и Docker build. Долгая нагрузка вынесена в ручной workflow `Extended load`. Команды закрепляют toolchain и генераторы; `generate-check` сравнивает содержимое до и после генерации, CI также требует чистый git diff.
+CI `.github/workflows/verify.yml` автоматически выполняет `verify-full` на push/PR, включая PostgreSQL с race и Docker build. Долгая нагрузка вынесена в ручной workflow `Extended load` с выбором профиля. Генератор в обычном SSE-прогоне требует доставку каждого успешного события каждому подписчику и завершает процесс с ошибкой при потере, дубликате, неожиданном событии или обрыве; это критерий измерения, а не изменение best-effort контракта сервиса. Команды закрепляют toolchain и генераторы; `generate-check` сравнивает содержимое до и после генерации, CI также требует чистый git diff.
 
 `/metrics` доступен на прямом порту приложения (через LB закрыт). Форматы — Prometheus text и JSON с `Accept: application/json`: запросы, ошибки, отказы rate/capacity, активные операции, количество/время SQL, занятость/ожидания/отмены пула, подписчики, медленные отключения, состояние LISTEN, heap и goroutines. Нет ID пользователей/постов в labels. SQL tracer считает SQL-вызовы, включая BEGIN/COMMIT; отдельные SELECT проверяются тестами. Структурированные логи приложения содержат коды ошибок, без SQL, DSN, bearer и сырых ошибок драйвера. Административные логи самой PostgreSQL могут содержать SQL диагностику.
 

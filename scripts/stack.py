@@ -127,13 +127,15 @@ class Stack:
         return int(value.rsplit(":", 1)[1])
 
     def db_ready(self):
-        return self.compose("exec", "-T", "db", "pg_isready", "-U", "ozon", "-d", self.env["DB_NAME"], capture=True, check=False).returncode == 0
+        # pg_isready can report ready during initdb before POSTGRES_DB exists.
+        return self.compose("exec", "-T", "db", "psql", "-X", "-U", "ozon", "-d", self.env["DB_NAME"], "-Atc", "SELECT 1", capture=True, check=False).stdout.strip() == "1"
 
     def db_up(self):
         self.compose("up", "-d", "db")
         poll(self.db_ready, label="isolated PostgreSQL")
 
     def up(self):
+        self.db_up()
         self.compose("up", "-d", "--remove-orphans", *[f"app{i}" for i in range(1, self.replicas + 1)], "lb")
         self.discover()
         for url in self.urls:

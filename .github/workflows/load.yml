@@ -1,19 +1,25 @@
 name: Extended load
 on:
   workflow_dispatch:
+    inputs:
+      profile:
+        description: Load profile
+        type: choice
+        default: full
+        options: [full, soak, protected]
 permissions:
   contents: read
 jobs:
   load:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.25.0'
           cache: true
-      - run: make load-full
+      - run: make load-${{ inputs.profile }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

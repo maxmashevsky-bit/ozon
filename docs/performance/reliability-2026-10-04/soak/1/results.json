@@ -1,0 +1,33 @@
+[
+  {
+    "scenario": "subscriptions",
+    "concurrency": 64,
+    "seconds": 180.00009725,
+    "warmup": "10s",
+    "publish_interval": "100ms",
+    "attempts": 1520,
+    "success": 1520,
+    "successful_rps": 8.44443988210123,
+    "p50_ms": 6.35,
+    "p95_ms": 13.594,
+    "p99_ms": 96.811,
+    "errors": {},
+    "expected_events": 97280,
+    "missing_events": 0,
+    "received_events": 97280,
+    "matched_events": 97280,
+    "duplicate_events": 0,
+    "unexpected_events": 0,
+    "invalid_events": 0,
+    "subscribers": 64,
+    "disconnects": 0,
+    "disconnect_reasons": {},
+    "delivery_p50_ms": 9.162,
+    "delivery_p95_ms": 17.414,
+    "delivery_p99_ms": 179.703,
+    "expected_errors": {},
+    "unexpected_errors": {},
+    "replicas": 1,
+    "repeat": 1
+  }
+]

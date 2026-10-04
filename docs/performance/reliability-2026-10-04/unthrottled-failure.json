@@ -1,0 +1,33 @@
+{
+  "scenario": "subscriptions",
+  "concurrency": 8,
+  "seconds": 2.001173708,
+  "warmup": "1s",
+  "attempts": 1367,
+  "success": 1367,
+  "successful_rps": 683.0991205487095,
+  "p50_ms": 1.336,
+  "p95_ms": 2.328,
+  "p99_ms": 3.062,
+  "errors": {},
+  "expected_events": 10936,
+  "missing_events": 1,
+  "received_events": 10936,
+  "matched_events": 10935,
+  "duplicate_events": 1,
+  "unexpected_events": 0,
+  "subscribers": 8,
+  "disconnects": 0,
+  "disconnect_reasons": {},
+  "missing_samples": [
+    "subscriber=4 comment=51698"
+  ],
+  "duplicate_samples": [
+    "subscriber=4 comment=51699 count=2"
+  ],
+  "delivery_p50_ms": 1.686,
+  "delivery_p95_ms": 2.722,
+  "delivery_p99_ms": 3.53,
+  "expected_errors": {},
+  "unexpected_errors": {}
+}

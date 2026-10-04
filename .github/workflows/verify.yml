@@ -23,4 +23,5 @@ jobs:
             .artifacts/**/integration.log
             .artifacts/**/containers.log
             .artifacts/**/status.txt
+            .artifacts/**/recovery-resources.json
           include-hidden-files: true

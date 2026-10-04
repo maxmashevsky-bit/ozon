@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "replicas": 3,
+  "scenarios": [
+    "migration race",
+    "integration with race",
+    "JWT",
+    "pages",
+    "authorship",
+    "cross-instance SSE",
+    "heartbeat",
+    "LISTEN recovery",
+    "application restart",
+    "feed recovery without duplicates",
+    "persistence",
+    "database outage",
+    "readiness",
+    "rate limits",
+    "sanitized logs"
+  ]
+}

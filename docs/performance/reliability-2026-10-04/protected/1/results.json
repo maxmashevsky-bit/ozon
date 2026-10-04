@@ -1,0 +1,34 @@
+[
+  {
+    "scenario": "read",
+    "concurrency": 32,
+    "seconds": 5.003397833,
+    "warmup": "1s",
+    "attempts": 16471,
+    "success": 601,
+    "successful_rps": 120.11837156663692,
+    "p50_ms": 78.607,
+    "p95_ms": 95.475,
+    "p99_ms": 102.7,
+    "errors": {
+      "RATE_LIMITED": 5379,
+      "http_429": 10491
+    },
+    "expected_events": 0,
+    "missing_events": 0,
+    "received_events": 0,
+    "matched_events": 0,
+    "duplicate_events": 0,
+    "unexpected_events": 0,
+    "invalid_events": 0,
+    "disconnects": 0,
+    "disconnect_reasons": null,
+    "expected_errors": {
+      "RATE_LIMITED": 5379,
+      "http_429": 10491
+    },
+    "unexpected_errors": {},
+    "replicas": 1,
+    "repeat": 1
+  }
+]

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import concurrent.futures, json, pathlib, queue, shutil, subprocess, sys, threading, time, urllib.request
 from stack import ROOT, GO_ENV, command, temporary_stack, poll, status, gql, data
+from seed import seed_dataset, clean_dataset
 
 class Stream:
     def __init__(self, url, post, token):
@@ -80,6 +81,24 @@ def verify(stack, output):
     data(stack.url, close, {"p": p, "allowed": True}, alice)
     print("PASS authenticated HTTP, pagination and authorship", flush=True)
 
+    seed_file = output / 'seed-system.json'
+    seed_call = lambda query, variables: data(stack.url, query, variables, stack.tokens['demo'])
+    seed_state = seed_dataset(seed_file, seed_call)
+    before_seed_repeat = stack.sql("SELECT count(*) FROM posts;") + ':' + stack.sql("SELECT count(*) FROM comments;")
+    seed_dataset(seed_file, seed_call)
+    assert before_seed_repeat == stack.sql("SELECT count(*) FROM posts;") + ':' + stack.sql("SELECT count(*) FROM comments;")
+    foreign = data(stack.url, add, {"p":seed_state['posts']['0'], "text":"user comment on seed"}, alice)['addComment']['id']
+    try:
+        clean_dataset(seed_file, seed_call, stack.sql)
+        raise AssertionError('clean-seed removed a user comment')
+    except ValueError as exc:
+        assert 'user comments' in str(exc)
+    assert data(stack.url, 'query($id:ID!){comment(id:$id){authorId}}', {'id':foreign})['comment']['authorId'] == 'alice'
+    stack.sql(f"DELETE FROM comments WHERE id={int(foreign)} AND author_id='alice';")
+    assert clean_dataset(seed_file, seed_call, stack.sql) == 3
+    assert data(stack.url, 'query($p:ID!){post(id:$p){id}}', {"p":p})['post']['id'] == p
+    print("PASS restartable seed and scoped cleanup on PostgreSQL", flush=True)
+
     stream = Stream(stack.urls[0], p, alice)
     emitted = data(stack.urls[1], add, {"p": p, "text": "cross-instance"}, bob)["addComment"]["id"]
     assert stream.events.get(timeout=5)["id"] == emitted
@@ -95,6 +114,8 @@ def verify(stack, output):
 
     # Automatic read-only recovery client: it must emit each stored ID once across an app restart.
     watched = output / "watch.jsonl"
+    metric_headers = {'Accept':'application/json'}
+    recovery_before = [json.load(urllib.request.urlopen(urllib.request.Request(u+'/metrics',headers=metric_headers))) for u in stack.urls]
     before = int(stack.sql(f"SELECT count(*) FROM comments WHERE post_id={int(p)};"))
     with watched.open("w") as file:
         watcher = subprocess.Popen([str(ROOT / "bin/watch"), "-url", stack.urls[0], "-post", p, "-token-file", str(stack.directory / "alice.token"), "-duration", "35s", "-count", str(before + 1)], cwd=ROOT, stdout=file, stderr=subprocess.PIPE, text=True)
@@ -111,6 +132,8 @@ def verify(stack, output):
                 watcher.wait(timeout=5)
     ids = [json.loads(x)["id"] for x in watched.read_text().splitlines()]
     assert len(ids) == len(set(ids)) == before + 1
+    recovery_after = [json.load(urllib.request.urlopen(urllib.request.Request(u+'/metrics',headers=metric_headers))) for u in stack.urls]
+    (output/'recovery-resources.json').write_text(json.dumps({'before':recovery_before,'after':recovery_after,'watch_events':len(ids)},indent=2))
     assert data(stack.url, 'query($p:ID!){post(id:$p){text}}', {"p": p})["post"]["text"] == "persistent"
     print("PASS application restart, persistence and automatic deduplicated recovery", flush=True)
 

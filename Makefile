@@ -1,7 +1,7 @@
 GO = GOTOOLCHAIN=go1.25.0 go
 PYTHON ?= python3
 
-.PHONY: run generate test race integration check build tools format-check generate-check verify verify-full up up-scale seed clean-seed down load-smoke load-full
+.PHONY: run generate test race integration check build tools format-check generate-check verify verify-full up up-scale seed clean-seed down load-smoke load-full load-soak load-protected
 run:
 	$(PYTHON) scripts/manage.py init
 	JWT_SECRET_FILE=.local/jwt.key $(GO) run ./cmd/server -storage=memory
@@ -17,6 +17,7 @@ format-check:
 
 test:
 	$(GO) test ./...
+	$(PYTHON) -m unittest discover -s scripts -p 'test_*.py'
 race:
 	$(GO) test -race ./...
 integration:
@@ -28,6 +29,7 @@ check: format-check
 verify: format-check
 	$(GO) vet ./...
 	$(GO) test -race ./...
+	$(PYTHON) -m unittest discover -s scripts -p 'test_*.py'
 	$(MAKE) generate-check
 verify-full: verify tools
 	$(PYTHON) scripts/verify_system.py
@@ -45,3 +47,7 @@ load-smoke: tools
 	$(PYTHON) scripts/load.py smoke
 load-full: tools
 	$(PYTHON) scripts/load.py full
+load-soak: tools
+	$(PYTHON) scripts/load.py soak
+load-protected: tools
+	$(PYTHON) scripts/load.py protected

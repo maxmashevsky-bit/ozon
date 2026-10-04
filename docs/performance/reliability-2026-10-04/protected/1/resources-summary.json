@@ -1,0 +1,60 @@
+{
+  "read-c32-r1": {
+    "before": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 10,
+        "go_heap_bytes": 928000,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.011002124,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4,
+        "pool_canceled_total": 0,
+        "pool_total": 1,
+        "pool_waits_total": 1,
+        "rate_rejected_total": 0,
+        "requests_total": 0,
+        "sql_errors_total": 0,
+        "sql_queries_total": 5,
+        "sql_seconds_total": 0.006794374,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "after": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 41,
+        "go_heap_bytes": 2819464,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 7.0296733,
+        "pool_acquired": 0,
+        "pool_acquires_total": 1421,
+        "pool_canceled_total": 0,
+        "pool_total": 20,
+        "pool_waits_total": 104,
+        "rate_rejected_total": 6044,
+        "requests_total": 7002,
+        "sql_errors_total": 0,
+        "sql_queries_total": 1422,
+        "sql_seconds_total": 5.000712807,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "sample_count": 4,
+    "sample_errors": [],
+    "peak_container_memory_mib": {
+      "app1": 12.43
+    },
+    "peak_go_goroutines": 41,
+    "peak_go_heap_mib": 4.32,
+    "peak_subscribers": 0
+  }
+}

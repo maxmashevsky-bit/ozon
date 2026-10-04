@@ -1,0 +1,458 @@
+{
+  "subscriptions-c8-r1": {
+    "before": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 10,
+        "go_heap_bytes": 918616,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.018199582,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4,
+        "pool_canceled_total": 0,
+        "pool_total": 1,
+        "pool_waits_total": 1,
+        "rate_rejected_total": 0,
+        "requests_total": 0,
+        "sql_errors_total": 0,
+        "sql_queries_total": 5,
+        "sql_seconds_total": 0.004489167,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "after": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 2250,
+        "go_goroutines": 11,
+        "go_heap_bytes": 2229912,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.27182513,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4512,
+        "pool_canceled_total": 0,
+        "pool_total": 8,
+        "pool_waits_total": 8,
+        "rate_rejected_total": 0,
+        "requests_total": 2258,
+        "sql_errors_total": 0,
+        "sql_queries_total": 11263,
+        "sql_seconds_total": 5.466920103,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "sample_count": 17,
+    "peak_container_memory_mib": {
+      "app1": 9.77
+    },
+    "peak_go_goroutines": 45,
+    "peak_go_heap_mib": 2.72,
+    "peak_subscribers": 8
+  },
+  "large-c8-r2": {
+    "before": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 10,
+        "go_heap_bytes": 919176,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.021334166,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4,
+        "pool_canceled_total": 0,
+        "pool_total": 1,
+        "pool_waits_total": 1,
+        "rate_rejected_total": 0,
+        "requests_total": 0,
+        "sql_errors_total": 0,
+        "sql_queries_total": 5,
+        "sql_seconds_total": 0.004304876,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "after": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 25636,
+        "go_goroutines": 21,
+        "go_heap_bytes": 2942024,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.22341598,
+        "pool_acquired": 0,
+        "pool_acquires_total": 51276,
+        "pool_canceled_total": 0,
+        "pool_total": 9,
+        "pool_waits_total": 9,
+        "rate_rejected_total": 0,
+        "requests_total": 25636,
+        "sql_errors_total": 0,
+        "sql_queries_total": 128185,
+        "sql_seconds_total": 180.876104442,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "sample_count": 17,
+    "peak_container_memory_mib": {
+      "app1": 19.08
+    },
+    "peak_go_goroutines": 36,
+    "peak_go_heap_mib": 5.38,
+    "peak_subscribers": 0
+  },
+  "mixed-c8-r1": {
+    "before": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 10,
+        "go_heap_bytes": 921016,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.011305709,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4,
+        "pool_canceled_total": 0,
+        "pool_total": 1,
+        "pool_waits_total": 1,
+        "rate_rejected_total": 0,
+        "requests_total": 0,
+        "sql_errors_total": 0,
+        "sql_queries_total": 5,
+        "sql_seconds_total": 0.003774458,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "after": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 6768,
+        "go_goroutines": 27,
+        "go_heap_bytes": 2756328,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.558624126,
+        "pool_acquired": 0,
+        "pool_acquires_total": 67696,
+        "pool_canceled_total": 0,
+        "pool_total": 9,
+        "pool_waits_total": 9,
+        "rate_rejected_total": 0,
+        "requests_total": 33846,
+        "sql_errors_total": 0,
+        "sql_queries_total": 88001,
+        "sql_seconds_total": 105.63017749,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "sample_count": 17,
+    "peak_container_memory_mib": {
+      "app1": 14.1
+    },
+    "peak_go_goroutines": 107,
+    "peak_go_heap_mib": 3.99,
+    "peak_subscribers": 0
+  },
+  "read-c8-r1": {
+    "before": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 10,
+        "go_heap_bytes": 919104,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.015562875,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4,
+        "pool_canceled_total": 0,
+        "pool_total": 1,
+        "pool_waits_total": 1,
+        "rate_rejected_total": 0,
+        "requests_total": 0,
+        "sql_errors_total": 0,
+        "sql_queries_total": 5,
+        "sql_seconds_total": 0.008232959,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "after": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 20,
+        "go_heap_bytes": 2406336,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.220788782,
+        "pool_acquired": 0,
+        "pool_acquires_total": 62378,
+        "pool_canceled_total": 0,
+        "pool_total": 8,
+        "pool_waits_total": 8,
+        "rate_rejected_total": 0,
+        "requests_total": 41583,
+        "sql_errors_total": 0,
+        "sql_queries_total": 62379,
+        "sql_seconds_total": 67.688367508,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "sample_count": 18,
+    "peak_container_memory_mib": {
+      "app1": 19.55
+    },
+    "peak_go_goroutines": 118,
+    "peak_go_heap_mib": 4.07,
+    "peak_subscribers": 0
+  },
+  "subscriptions-c8-r2": {
+    "before": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 10,
+        "go_heap_bytes": 927160,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.016399333,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4,
+        "pool_canceled_total": 0,
+        "pool_total": 1,
+        "pool_waits_total": 1,
+        "rate_rejected_total": 0,
+        "requests_total": 0,
+        "sql_errors_total": 0,
+        "sql_queries_total": 5,
+        "sql_seconds_total": 0.004613249,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "after": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 2363,
+        "go_goroutines": 10,
+        "go_heap_bytes": 1919472,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.09844823,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4738,
+        "pool_canceled_total": 0,
+        "pool_total": 8,
+        "pool_waits_total": 8,
+        "rate_rejected_total": 0,
+        "requests_total": 2371,
+        "sql_errors_total": 0,
+        "sql_queries_total": 11828,
+        "sql_seconds_total": 5.094395612,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "sample_count": 18,
+    "peak_container_memory_mib": {
+      "app1": 11.41
+    },
+    "peak_go_goroutines": 44,
+    "peak_go_heap_mib": 2.79,
+    "peak_subscribers": 8
+  },
+  "large-c8-r1": {
+    "before": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 10,
+        "go_heap_bytes": 927752,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.016012917,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4,
+        "pool_canceled_total": 0,
+        "pool_total": 1,
+        "pool_waits_total": 1,
+        "rate_rejected_total": 0,
+        "requests_total": 0,
+        "sql_errors_total": 0,
+        "sql_queries_total": 5,
+        "sql_seconds_total": 0.008789791,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "after": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 32281,
+        "go_goroutines": 24,
+        "go_heap_bytes": 3624760,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.173165219,
+        "pool_acquired": 0,
+        "pool_acquires_total": 64566,
+        "pool_canceled_total": 0,
+        "pool_total": 9,
+        "pool_waits_total": 9,
+        "rate_rejected_total": 0,
+        "requests_total": 32281,
+        "sql_errors_total": 0,
+        "sql_queries_total": 161410,
+        "sql_seconds_total": 185.969377723,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "sample_count": 18,
+    "peak_container_memory_mib": {
+      "app1": 15.32
+    },
+    "peak_go_goroutines": 37,
+    "peak_go_heap_mib": 5.63,
+    "peak_subscribers": 0
+  },
+  "read-c8-r2": {
+    "before": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 10,
+        "go_heap_bytes": 934728,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.024898835,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4,
+        "pool_canceled_total": 0,
+        "pool_total": 1,
+        "pool_waits_total": 1,
+        "rate_rejected_total": 0,
+        "requests_total": 0,
+        "sql_errors_total": 0,
+        "sql_queries_total": 5,
+        "sql_seconds_total": 0.134548708,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "after": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 21,
+        "go_heap_bytes": 2130392,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.325472198,
+        "pool_acquired": 0,
+        "pool_acquires_total": 63807,
+        "pool_canceled_total": 0,
+        "pool_total": 8,
+        "pool_waits_total": 8,
+        "rate_rejected_total": 0,
+        "requests_total": 42536,
+        "sql_errors_total": 0,
+        "sql_queries_total": 63808,
+        "sql_seconds_total": 68.115050255,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "sample_count": 17,
+    "peak_container_memory_mib": {
+      "app1": 14.95
+    },
+    "peak_go_goroutines": 80,
+    "peak_go_heap_mib": 4.15,
+    "peak_subscribers": 0
+  },
+  "mixed-c8-r2": {
+    "before": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 0,
+        "go_goroutines": 10,
+        "go_heap_bytes": 919272,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.00954775,
+        "pool_acquired": 0,
+        "pool_acquires_total": 4,
+        "pool_canceled_total": 0,
+        "pool_total": 1,
+        "pool_waits_total": 1,
+        "rate_rejected_total": 0,
+        "requests_total": 0,
+        "sql_errors_total": 0,
+        "sql_queries_total": 5,
+        "sql_seconds_total": 0.004949291,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "after": [
+      {
+        "busy_rejected_total": 0,
+        "events_published_total": 8402,
+        "go_goroutines": 27,
+        "go_heap_bytes": 3300912,
+        "graphql_errors_total": 0,
+        "inflight": 0,
+        "listener_ready": 1,
+        "pool_acquire_seconds_total": 0.347093075,
+        "pool_acquired": 0,
+        "pool_acquires_total": 84032,
+        "pool_canceled_total": 0,
+        "pool_total": 9,
+        "pool_waits_total": 9,
+        "rate_rejected_total": 0,
+        "requests_total": 42014,
+        "sql_errors_total": 0,
+        "sql_queries_total": 109239,
+        "sql_seconds_total": 104.540639948,
+        "subscribers": 0,
+        "subscription_slow_disconnects_total": 0
+      }
+    ],
+    "sample_count": 18,
+    "peak_container_memory_mib": {
+      "app1": 22.02
+    },
+    "peak_go_goroutines": 67,
+    "peak_go_heap_mib": 4.19,
+    "peak_subscribers": 0
+  }
+}
