@@ -1,0 +1,43 @@
+scalar Time
+
+type Post {
+  id: ID!
+  authorId: String!
+  title: String!
+  text: String!
+  commentsAllowed: Boolean!
+  createdAt: Time!
+}
+
+type Comment {
+  id: ID!
+  postId: ID!
+  parentId: ID
+  authorId: String!
+  text: String!
+  createdAt: Time!
+}
+
+type PageInfo { hasNextPage: Boolean!, endCursor: String }
+type PostEdge { cursor: String!, node: Post! }
+type PostConnection { edges: [PostEdge!]!, pageInfo: PageInfo! }
+type CommentEdge { cursor: String!, node: Comment! }
+type CommentConnection { edges: [CommentEdge!]!, pageInfo: PageInfo! }
+
+type Query {
+  posts(first: Int! = 20, after: String): PostConnection!
+  post(id: ID!): Post!
+  comment(id: ID!): Comment!
+  "parentId omitted: roots; parentId supplied: immediate replies only."
+  comments(postId: ID!, parentId: ID, first: Int! = 20, after: String): CommentConnection!
+}
+
+type Mutation {
+  createPost(title: String!, text: String!): Post!
+  setCommentsAllowed(postId: ID!, allowed: Boolean!): Post!
+  addComment(postId: ID!, parentId: ID, text: String!): Comment!
+}
+
+type Subscription {
+  commentAdded(postId: ID!): Comment!
+}
