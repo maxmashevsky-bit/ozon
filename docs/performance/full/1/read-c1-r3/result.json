@@ -1,0 +1,15 @@
+{
+  "scenario": "read",
+  "concurrency": 1,
+  "seconds": 4.002663167,
+  "warmup": "1s",
+  "attempts": 645,
+  "success": 645,
+  "successful_rps": 161.14271251143728,
+  "p50_ms": 3.793,
+  "p95_ms": 18.747,
+  "p99_ms": 37.023,
+  "errors": {},
+  "expected_errors": {},
+  "unexpected_errors": {}
+}

@@ -1,0 +1,11 @@
+[{"calls":1526,"total_exec_time":539.7453339999995,"mean_exec_time":0.353699432503277,"rows":122080,"query":"-- name: ListCommentBranches :many\nSELECT b.ordinality::integer AS branch_index, c.id, c.post_id, c.parent_id, c.author_id, c.text, c.created_at\nFROM unnest($1::bigint[]) WITH ORDINALITY AS b(parent_id, ordinality)\nCROSS JOIN LATERAL (\n SELECT id, post_id, parent_id, author_id, text, created_at FROM comments\n WHERE post_id = $2 AND parent_id = b.parent_id AND id > ($3::bigint[])[b.ordinality]\n ORDER BY id LIMIT ($4::integer[])[b.ordinality]\n) c\nORDER BY b.ordinality, c.id"}, 
+ {"calls":1526,"total_exec_time":100.86027200000021,"mean_exec_time":0.06609454259501972,"rows":30520,"query":"-- name: GetComments :many\nSELECT id, post_id, parent_id, author_id, text, created_at FROM comments WHERE id = ANY($1::bigint[])"}, 
+ {"calls":1526,"total_exec_time":46.642643999999976,"mean_exec_time":0.030565297509829618,"rows":1526,"query":"-- name: GetPost :one\nSELECT id, author_id, title, text, comments_allowed, created_at FROM posts WHERE id = $1"}, 
+ {"calls":1,"total_exec_time":0.349166,"mean_exec_time":0.349166,"rows":1,"query":"SELECT pg_stat_statements_reset()"}, 
+ {"calls":1,"total_exec_time":0.098416,"mean_exec_time":0.098416,"rows":1,"query":"-- name: CurrentSchema :one\nSELECT current_schema()::text"}, 
+ {"calls":3,"total_exec_time":0.042208,"mean_exec_time":0.014069333333333333,"rows":0,"query":"-- name: Ready :exec\nSELECT id FROM posts LIMIT $1"}, 
+ {"calls":1,"total_exec_time":0.03875,"mean_exec_time":0.03875,"rows":1,"query":"SELECT EXISTS ( SELECT $1 FROM pg_tables WHERE (current_schema() IS NULL OR schemaname = current_schema()) AND tablename = $2 )"}, 
+ {"calls":1,"total_exec_time":0.037708,"mean_exec_time":0.037708,"rows":1,"query":"SELECT pg_try_advisory_lock($1)"}, 
+ {"calls":1,"total_exec_time":0.0335,"mean_exec_time":0.0335,"rows":3,"query":"SELECT version_id, is_applied from goose_db_version ORDER BY id DESC"}, 
+ {"calls":1,"total_exec_time":0.024792,"mean_exec_time":0.024792,"rows":0,"query":"LISTEN ozon_comments"}, 
+ {"calls":1,"total_exec_time":0.0035,"mean_exec_time":0.0035,"rows":1,"query":"SELECT pg_advisory_unlock($1)"}]

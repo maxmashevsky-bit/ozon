@@ -1,0 +1,238 @@
+{
+  "before": [
+    {
+      "busy_rejected_total": 0,
+      "events_published_total": 0,
+      "go_goroutines": 10,
+      "go_heap_bytes": 918688,
+      "graphql_errors_total": 0,
+      "inflight": 0,
+      "listener_ready": 1,
+      "pool_acquire_seconds_total": 0.011440207,
+      "pool_acquired": 0,
+      "pool_acquires_total": 4,
+      "pool_canceled_total": 0,
+      "pool_total": 1,
+      "pool_waits_total": 1,
+      "rate_rejected_total": 0,
+      "requests_total": 0,
+      "sql_errors_total": 0,
+      "sql_queries_total": 5,
+      "sql_seconds_total": 0.003000292,
+      "subscribers": 0,
+      "subscription_slow_disconnects_total": 0
+    }
+  ],
+  "after": [
+    {
+      "busy_rejected_total": 0,
+      "events_published_total": 0,
+      "go_goroutines": 41,
+      "go_heap_bytes": 10143904,
+      "graphql_errors_total": 0,
+      "inflight": 0,
+      "listener_ready": 1,
+      "pool_acquire_seconds_total": 2.472752338,
+      "pool_acquired": 0,
+      "pool_acquires_total": 7813,
+      "pool_canceled_total": 0,
+      "pool_total": 20,
+      "pool_waits_total": 386,
+      "rate_rejected_total": 0,
+      "requests_total": 2603,
+      "sql_errors_total": 0,
+      "sql_queries_total": 7814,
+      "sql_seconds_total": 55.368919277,
+      "subscribers": 0,
+      "subscription_slow_disconnects_total": 0
+    }
+  ],
+  "samples": [
+    {
+      "time": 1791122535.67269,
+      "metrics": [
+        {
+          "busy_rejected_total": 0,
+          "events_published_total": 0,
+          "go_goroutines": 10,
+          "go_heap_bytes": 940904,
+          "graphql_errors_total": 0,
+          "inflight": 0,
+          "listener_ready": 1,
+          "pool_acquire_seconds_total": 0.011440207,
+          "pool_acquired": 0,
+          "pool_acquires_total": 4,
+          "pool_canceled_total": 0,
+          "pool_total": 1,
+          "pool_waits_total": 1,
+          "rate_rejected_total": 0,
+          "requests_total": 0,
+          "sql_errors_total": 0,
+          "sql_queries_total": 5,
+          "sql_seconds_total": 0.003000292,
+          "subscribers": 0,
+          "subscription_slow_disconnects_total": 0
+        }
+      ],
+      "containers": [
+        {
+          "BlockIO": "0B / 0B",
+          "CPUPerc": "99.82%",
+          "Container": "761aa0dcd1b38f3417f796acde5db5cca6dab0732afa57ea2312ffadfa87811b",
+          "ID": "761aa0dcd1b3",
+          "MemPerc": "5.33%",
+          "MemUsage": "27.27MiB / 512MiB",
+          "Name": "ozon-load-915063fd66-app1-1",
+          "NetIO": "19.3MB / 4.06MB",
+          "PIDs": "15"
+        },
+        {
+          "BlockIO": "8.19kB / 4GB",
+          "CPUPerc": "67.46%",
+          "Container": "f3f0da083fe445cada2ace61b5b87a5a56d2117458660f19dda225f2b37bd4f1",
+          "ID": "f3f0da083fe4",
+          "MemPerc": "10.71%",
+          "MemUsage": "109.7MiB / 1GiB",
+          "Name": "ozon-load-915063fd66-db-1",
+          "NetIO": "182MB / 961MB",
+          "PIDs": "27"
+        },
+        {
+          "BlockIO": "4.1kB / 12.3kB",
+          "CPUPerc": "9.05%",
+          "Container": "cc47147b3f0fcdcd617bfe61c3c4a9d96a086a42057b17021039847d1b978417",
+          "ID": "cc47147b3f0f",
+          "MemPerc": "18.46%",
+          "MemUsage": "11.82MiB / 64MiB",
+          "Name": "ozon-load-915063fd66-lb-1",
+          "NetIO": "474MB / 496MB",
+          "PIDs": "9"
+        }
+      ]
+    },
+    {
+      "time": 1791122537.983305,
+      "metrics": [
+        {
+          "busy_rejected_total": 0,
+          "events_published_total": 0,
+          "go_goroutines": 389,
+          "go_heap_bytes": 9526912,
+          "graphql_errors_total": 0,
+          "inflight": 27,
+          "listener_ready": 1,
+          "pool_acquire_seconds_total": 2.079584101,
+          "pool_acquired": 5,
+          "pool_acquires_total": 3397,
+          "pool_canceled_total": 0,
+          "pool_total": 20,
+          "pool_waits_total": 218,
+          "rate_rejected_total": 0,
+          "requests_total": 1132,
+          "sql_errors_total": 0,
+          "sql_queries_total": 3398,
+          "sql_seconds_total": 25.299178019,
+          "subscribers": 0,
+          "subscription_slow_disconnects_total": 0
+        }
+      ],
+      "containers": [
+        {
+          "BlockIO": "0B / 0B",
+          "CPUPerc": "99.01%",
+          "Container": "761aa0dcd1b38f3417f796acde5db5cca6dab0732afa57ea2312ffadfa87811b",
+          "ID": "761aa0dcd1b3",
+          "MemPerc": "6.11%",
+          "MemUsage": "31.3MiB / 512MiB",
+          "Name": "ozon-load-915063fd66-app1-1",
+          "NetIO": "39.5MB / 8.3MB",
+          "PIDs": "15"
+        },
+        {
+          "BlockIO": "8.19kB / 4GB",
+          "CPUPerc": "35.05%",
+          "Container": "f3f0da083fe445cada2ace61b5b87a5a56d2117458660f19dda225f2b37bd4f1",
+          "ID": "f3f0da083fe4",
+          "MemPerc": "10.72%",
+          "MemUsage": "109.8MiB / 1GiB",
+          "Name": "ozon-load-915063fd66-db-1",
+          "NetIO": "185MB / 989MB",
+          "PIDs": "27"
+        },
+        {
+          "BlockIO": "4.1kB / 12.3kB",
+          "CPUPerc": "7.57%",
+          "Container": "cc47147b3f0fcdcd617bfe61c3c4a9d96a086a42057b17021039847d1b978417",
+          "ID": "cc47147b3f0f",
+          "MemPerc": "18.41%",
+          "MemUsage": "11.78MiB / 64MiB",
+          "Name": "ozon-load-915063fd66-lb-1",
+          "NetIO": "480MB / 502MB",
+          "PIDs": "9"
+        }
+      ]
+    },
+    {
+      "time": 1791122539.9928188,
+      "metrics": [
+        {
+          "busy_rejected_total": 0,
+          "events_published_total": 0,
+          "go_goroutines": 237,
+          "go_heap_bytes": 8758544,
+          "graphql_errors_total": 0,
+          "inflight": 27,
+          "listener_ready": 1,
+          "pool_acquire_seconds_total": 2.173268309,
+          "pool_acquired": 20,
+          "pool_acquires_total": 6559,
+          "pool_canceled_total": 0,
+          "pool_total": 20,
+          "pool_waits_total": 323,
+          "rate_rejected_total": 0,
+          "requests_total": 2192,
+          "sql_errors_total": 0,
+          "sql_queries_total": 6560,
+          "sql_seconds_total": 46.287071932,
+          "subscribers": 0,
+          "subscription_slow_disconnects_total": 0
+        }
+      ],
+      "containers": [
+        {
+          "BlockIO": "0B / 0B",
+          "CPUPerc": "8.47%",
+          "Container": "761aa0dcd1b38f3417f796acde5db5cca6dab0732afa57ea2312ffadfa87811b",
+          "ID": "761aa0dcd1b3",
+          "MemPerc": "6.41%",
+          "MemUsage": "32.82MiB / 512MiB",
+          "Name": "ozon-load-915063fd66-app1-1",
+          "NetIO": "51.1MB / 10.8MB",
+          "PIDs": "15"
+        },
+        {
+          "BlockIO": "8.19kB / 4GB",
+          "CPUPerc": "5.19%",
+          "Container": "f3f0da083fe445cada2ace61b5b87a5a56d2117458660f19dda225f2b37bd4f1",
+          "ID": "f3f0da083fe4",
+          "MemPerc": "10.75%",
+          "MemUsage": "110.1MiB / 1GiB",
+          "Name": "ozon-load-915063fd66-db-1",
+          "NetIO": "186MB / 1GB",
+          "PIDs": "27"
+        },
+        {
+          "BlockIO": "4.1kB / 12.3kB",
+          "CPUPerc": "0.72%",
+          "Container": "cc47147b3f0fcdcd617bfe61c3c4a9d96a086a42057b17021039847d1b978417",
+          "ID": "cc47147b3f0f",
+          "MemPerc": "17.66%",
+          "MemUsage": "11.3MiB / 64MiB",
+          "Name": "ozon-load-915063fd66-lb-1",
+          "NetIO": "482MB / 504MB",
+          "PIDs": "9"
+        }
+      ]
+    }
+  ]
+}

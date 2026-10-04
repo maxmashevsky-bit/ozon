@@ -57,3 +57,14 @@
 | Docker | непривилегированный scratch-образ, Compose, отдельный migrate |
 | Unit-тесты | race suite и общие контрактные тесты |
 | GraphQL Subscriptions | SSE, межсерверный NOTIFY/LISTEN, heartbeat, recovery feed |
+
+## Фактически выполнено 4 октября 2026
+
+- До правок: `make check`, `make race`, `TEST_DATABASE_URL=… make integration` — прошли на исходном `7ed5139`.
+- После правок: `make verify-full` — прошёл локально, включая три одновременно запущенных мигратора, тесты с race, Docker build и системные сценарии; [результат](performance/verification/local-system.json), [интеграционный лог](performance/verification/local-integration.txt).
+- GitHub Actions на `bf7f998`: [run 37207166620](https://github.com/maxmashevsky-bit/ozon/actions/runs/37207166620) — `success`; `make verify-full` и чистый `git diff` прошли. [Системный результат](performance/verification/ci-system.json), [интеграционный лог](performance/verification/ci-integration.txt).
+- `make load-smoke`, `make load-full`, профиль прямого сравнения — успешно завершились; 108 полных прогонов, 0 GraphQL/HTTP ошибок, 0 пропущенных SSE событий и 0 отключений. [Таблицы, разброс и исходные JSON](performance/README.md).
+- Локально выполнена цепочка `up → seed → seed → clean-seed → up-scale → down → up-scale → seed`: seed идемпотентен, очистка затронула только созданные ей записи, хеши всех ранее существовавших постов и комментариев совпали до/после, volume пережил остановку. Результат `.artifacts/local-commands-result.json` остаётся только в локальной игнорируемой директории. Итоговый локальный стенд запущен с тремя приложениями.
+- Отдельный бинарник `server -storage=memory` запущен и проверен настоящим HTTP: JWT, пост, корень, ответ, recovery feed и штатное завершение по SIGTERM — успешно. `scripts/manage.py init` также выполнен без обращения к Docker.
+
+Тесты миграций на пустой БД первоначально выявили гонку создания `goose_db_version`, которая не покрывалась только внутренней блокировкой Goose. Перед финальным запуском добавлена внешняя session lock на весь вызов мигратора. Первый пробный замер SSE был исключён из отчёта из-за уведомлений от заполнения fixture при активном LISTEN; исправленный сценарий останавливает приложения на время подготовки данных. Оба факта и исправления сохранены в истории работы, а результаты отчёта относятся к проверенному коду.

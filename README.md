@@ -4,7 +4,7 @@ Go GraphQL-сервис постов и комментариев. [Исходн�
 
 ## Быстрый запуск
 
-Нужны Go с поддержкой `GOTOOLCHAIN`, Python 3.10+, Docker Engine/Desktop и Compose v2. Makefile закрепляет Go **1.25.0**, gqlgen **0.17.81**, sqlc **1.30.0**. Все команды выполняются из корня репозитория.
+Нужны Go с поддержкой `GOTOOLCHAIN` и Python 3.10+; для PostgreSQL-стенда и полных проверок — Docker Engine/Desktop и Compose v2. Makefile закрепляет Go **1.25.0**, gqlgen **0.17.81**, sqlc **1.30.0**. Все команды выполняются из корня репозитория.
 
 ```sh
 make up           # PostgreSQL, отдельный мигратор, приложение, Nginx
@@ -99,7 +99,7 @@ query Branches($p: ID!, $a: String, $b: String) {
 
 ## SSE и восстановление
 
-`commentAdded(postId)` работает через HTTP POST с `Accept: text/event-stream`, события `next`/`complete`. WebSocket не включён. Служебные строки `: connected`, `: ready`, `: heartbeat` позволяют дождаться регистрации и поддерживают поток; heartbeat по умолчанию раз в 15 секунд. Nginx отключает буферизацию и cache, не повторяет POST на другом upstream.
+`commentAdded(postId)` работает через HTTP POST с `Accept: text/event-stream`, события `next`/`complete`. WebSocket не включён. Служебные строки `: connected`, `: ready`, `: heartbeat` позволяют дождаться регистрации и поддерживают поток; heartbeat по умолчанию раз в 15 секунд. Nginx отключает буферизацию и cache, не повторяет POST на другом upstream. Его read timeout — 40s; при увеличении heartbeat выше этого значения нужно увеличить timeout прокси.
 
 PostgreSQL-триггер после commit отправляет схему и ID через NOTIFY. Каждый процесс имеет отдельное LISTEN-соединение, читает сохранённую запись и публикует её локальным подписчикам. При потере LISTEN активные потоки закрываются, слушатель переподключается. При переполнении буфера медленный подписчик отключается, запись не ждёт его. Все записи SSE, включая heartbeat, выполняет одна горутина с write deadline.
 

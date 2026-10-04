@@ -1,0 +1,15 @@
+{
+  "scenario": "hot",
+  "concurrency": 32,
+  "seconds": 4.055714583,
+  "warmup": "1s",
+  "attempts": 875,
+  "success": 875,
+  "successful_rps": 215.7449648127766,
+  "p50_ms": 59.829,
+  "p95_ms": 375.371,
+  "p99_ms": 2090.246,
+  "errors": {},
+  "expected_errors": {},
+  "unexpected_errors": {}
+}

@@ -1,0 +1,21 @@
+{
+  "scenario": "subscriptions",
+  "concurrency": 32,
+  "seconds": 4.001034958,
+  "warmup": "1s",
+  "attempts": 1052,
+  "success": 1052,
+  "successful_rps": 262.9319691137775,
+  "p50_ms": 2.12,
+  "p95_ms": 7.681,
+  "p99_ms": 40.909,
+  "errors": {},
+  "expected_events": 33664,
+  "events": 33664,
+  "subscribers": 32,
+  "delivery_p50_ms": 2.689,
+  "delivery_p95_ms": 25.856,
+  "delivery_p99_ms": 45.543,
+  "expected_errors": {},
+  "unexpected_errors": {}
+}

@@ -1,0 +1,15 @@
+{
+  "scenario": "uniform",
+  "concurrency": 32,
+  "seconds": 4.07436025,
+  "warmup": "1s",
+  "attempts": 4262,
+  "success": 4262,
+  "successful_rps": 1046.0537945803885,
+  "p50_ms": 6.703,
+  "p95_ms": 87.161,
+  "p99_ms": 176.276,
+  "errors": {},
+  "expected_errors": {},
+  "unexpected_errors": {}
+}

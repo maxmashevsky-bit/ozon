@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, sys
+import json, os, secrets, sys
 from stack import Stack, ROOT, local_stack, command, GO_ENV, data
 
 mode = sys.argv[1] if len(sys.argv) > 1 else "up"
@@ -12,7 +12,14 @@ if mode in ["up", "up-scale"]:
 elif mode == "down":
     local_stack().down()
 elif mode == "init":
-    Stack()
+    # Memory mode needs a signing key, not Docker or database configuration.
+    directory = ROOT / ".local"
+    directory.mkdir(parents=True, exist_ok=True)
+    directory.chmod(0o700)
+    key = directory / "jwt.key"
+    if not key.exists():
+        key.write_text(secrets.token_hex(32))
+        key.chmod(0o600)
 elif mode == "seed":
     stack = local_stack()
     stack.discover()

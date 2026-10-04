@@ -1,0 +1,15 @@
+{
+  "scenario": "batch",
+  "concurrency": 8,
+  "seconds": 4.0052645,
+  "warmup": "1s",
+  "attempts": 1100,
+  "success": 1100,
+  "successful_rps": 274.63854134976606,
+  "p50_ms": 8.296,
+  "p95_ms": 75.069,
+  "p99_ms": 187.203,
+  "errors": {},
+  "expected_errors": {},
+  "unexpected_errors": {}
+}

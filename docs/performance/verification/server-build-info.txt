@@ -1,0 +1,32 @@
+/tmp/ozon-updated-server: go1.25.14
+	path	example.com/ozon/cmd/server
+	mod	example.com/ozon	(devel)	
+	dep	github.com/99designs/gqlgen	v0.17.81	h1:kCkN/xVyRb5rEQpuwOHRTYq83i0IuTQg9vdIiwEerTs=
+	dep	github.com/agnivade/levenshtein	v1.2.1	h1:EHBY3UOn1gwdy/VbFwgo4cxecRznFk7fKWN1KOX7eoM=
+	dep	github.com/go-viper/mapstructure/v2	v2.4.0	h1:EBsztssimR/CONLSZZ04E8qAkxNYq4Qp9LvH92wZUgs=
+	dep	github.com/golang-jwt/jwt/v5	v5.3.1	h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63YCY=
+	dep	github.com/google/uuid	v1.6.0	h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+	dep	github.com/gorilla/websocket	v1.5.0	h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc=
+	dep	github.com/hashicorp/golang-lru/v2	v2.0.7	h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=
+	dep	github.com/jackc/pgpassfile	v1.0.0	h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
+	dep	github.com/jackc/pgservicefile	v0.0.0-20240606120523-5a60cdf6a761	h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
+	dep	github.com/jackc/pgx/v5	v5.7.6	h1:rWQc5FwZSPX58r1OQmkuaNicxdmExaEz5A2DO2hUuTk=
+	dep	github.com/jackc/puddle/v2	v2.2.2	h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
+	dep	github.com/mfridman/interpolate	v0.0.2	h1:pnuTK7MQIxxFz1Gr+rjSIx9u7qVjf5VOoM/u6BbAxPY=
+	dep	github.com/pressly/goose/v3	v3.26.0	h1:KJakav68jdH0WDvoAcj8+n61WqOIaPGgH0bJWS6jpmM=
+	dep	github.com/sethvargo/go-retry	v0.3.0	h1:EEt31A35QhrcRZtrYFDTBg91cqZVnFL2navjDrah2SE=
+	dep	github.com/sosodev/duration	v1.3.1	h1:qtHBDMQ6lvMQsL15g4aopM4HEfOaYuhWBw3NPTtlqq4=
+	dep	github.com/vektah/gqlparser/v2	v2.5.30	h1:EqLwGAFLIzt1wpx1IPpY67DwUujF1OfzgEyDsLrN6kE=
+	dep	go.uber.org/multierr	v1.11.0	h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
+	dep	golang.org/x/crypto	v0.40.0	h1:r4x+VvoG5Fm+eJcxMaY8CQM7Lb0l1lsmjGBQ6s8BfKM=
+	dep	golang.org/x/sync	v0.17.0	h1:l60nONMj9l5drqw6jlhIELNv9I0A4OFgRsG9k2oT9Ug=
+	dep	golang.org/x/text	v0.29.0	h1:1neNs90w9YzJ9BocxfsQNHKuAT4pkghyXc4nhZ6sJvk=
+	dep	golang.org/x/time	v0.12.0	h1:ScB/8o8olJvc+CQPWrK3fPZNfh7qgwCrY0zJmoEQLSE=
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	-trimpath=true
+	build	DefaultGODEBUG=containermaxprocs=0,decoratemappings=0,tlssha1=1,updatemaxprocs=0,x509sha256skid=0
+	build	CGO_ENABLED=0
+	build	GOARCH=arm64
+	build	GOOS=linux
+	build	GOARM64=v8.0

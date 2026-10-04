@@ -1,0 +1,15 @@
+{
+  "scenario": "mixed",
+  "concurrency": 32,
+  "seconds": 4.006651125,
+  "warmup": "1s",
+  "attempts": 6381,
+  "success": 6381,
+  "successful_rps": 1592.601851502606,
+  "p50_ms": 6.828,
+  "p95_ms": 78.744,
+  "p99_ms": 86.462,
+  "errors": {},
+  "expected_errors": {},
+  "unexpected_errors": {}
+}

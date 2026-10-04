@@ -1,0 +1,22 @@
+?   	example.com/ozon	[no test files]
+?   	example.com/ozon/cmd/bench	[no test files]
+?   	example.com/ozon/cmd/migrate	[no test files]
+?   	example.com/ozon/cmd/server	[no test files]
+?   	example.com/ozon/cmd/token	[no test files]
+?   	example.com/ozon/cmd/watch	[no test files]
+?   	example.com/ozon/internal/auth	[no test files]
+?   	example.com/ozon/internal/client	[no test files]
+?   	example.com/ozon/internal/config	[no test files]
+?   	example.com/ozon/internal/core	[no test files]
+ok  	example.com/ozon/internal/events	(cached)
+?   	example.com/ozon/internal/graph	[no test files]
+?   	example.com/ozon/internal/graph/model	[no test files]
+ok  	example.com/ozon/internal/httpapi	3.692s
+?   	example.com/ozon/internal/store/contract	[no test files]
+ok  	example.com/ozon/internal/store/memory	(cached)
+ok  	example.com/ozon/internal/store/postgres	7.125s
+?   	example.com/ozon/internal/store/postgres/db	[no test files]
+?   	example.com/ozon/internal/stream	[no test files]
+?   	example.com/ozon/internal/telemetry	[no test files]
+?   	example.com/ozon/internal/testdb	[no test files]
+ok  	example.com/ozon/migrations	17.862s

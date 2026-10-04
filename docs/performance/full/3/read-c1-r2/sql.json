@@ -1,0 +1,11 @@
+[{"calls":1998,"total_exec_time":68.66490500000022,"mean_exec_time":0.03436681931931935,"rows":41958,"query":"-- name: ListRoots :many\nSELECT id, post_id, parent_id, author_id, text, created_at FROM comments WHERE post_id = $1 AND parent_id IS NULL AND id > $2 ORDER BY id LIMIT $3"}, 
+ {"calls":1999,"total_exec_time":50.48699099999991,"mean_exec_time":0.0252561235617809,"rows":41979,"query":"-- name: ListPosts :many\nSELECT id, author_id, title, text, comments_allowed, created_at FROM posts WHERE id > $1 ORDER BY id LIMIT $2"}, 
+ {"calls":1998,"total_exec_time":29.280949000000028,"mean_exec_time":0.014655129629629626,"rows":1998,"query":"-- name: GetPost :one\nSELECT id, author_id, title, text, comments_allowed, created_at FROM posts WHERE id = $1"}, 
+ {"calls":1,"total_exec_time":0.289958,"mean_exec_time":0.289958,"rows":1,"query":"SELECT pg_stat_statements_reset()"}, 
+ {"calls":3,"total_exec_time":0.264876,"mean_exec_time":0.088292,"rows":3,"query":"-- name: CurrentSchema :one\nSELECT current_schema()::text"}, 
+ {"calls":1,"total_exec_time":0.07104099999999999,"mean_exec_time":0.07104099999999999,"rows":3,"query":"SELECT version_id, is_applied from goose_db_version ORDER BY id DESC"}, 
+ {"calls":7,"total_exec_time":0.068457,"mean_exec_time":0.009779571428571427,"rows":0,"query":"-- name: Ready :exec\nSELECT id FROM posts LIMIT $1"}, 
+ {"calls":1,"total_exec_time":0.060917,"mean_exec_time":0.060917,"rows":1,"query":"SELECT pg_try_advisory_lock($1)"}, 
+ {"calls":1,"total_exec_time":0.048958,"mean_exec_time":0.048958,"rows":1,"query":"SELECT EXISTS ( SELECT $1 FROM pg_tables WHERE (current_schema() IS NULL OR schemaname = current_schema()) AND tablename = $2 )"}, 
+ {"calls":3,"total_exec_time":0.012125,"mean_exec_time":0.0040416666666666665,"rows":0,"query":"LISTEN ozon_comments"}, 
+ {"calls":1,"total_exec_time":0.006125,"mean_exec_time":0.006125,"rows":1,"query":"SELECT pg_advisory_unlock($1)"}]

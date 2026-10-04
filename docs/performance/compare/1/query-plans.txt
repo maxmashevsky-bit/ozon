@@ -1,0 +1,58 @@
+SELECT * FROM posts WHERE id > 50 ORDER BY id LIMIT 21
+Limit  (cost=0.14..6.27 rows=21 width=234) (actual time=0.048..0.057 rows=21 loops=1)
+  Buffers: shared hit=6
+  ->  Index Scan using posts_pkey on posts  (cost=0.14..15.04 rows=51 width=234) (actual time=0.047..0.053 rows=21 loops=1)
+        Index Cond: (id > 50)
+        Buffers: shared hit=6
+Planning:
+  Buffers: shared hit=81
+Planning Time: 0.429 ms
+Execution Time: 0.137 ms
+
+SELECT * FROM comments WHERE post_id=1 AND parent_id IS NULL AND id > 30 ORDER BY id LIMIT 21
+Limit  (cost=0.29..259.02 rows=21 width=139) (actual time=0.055..0.066 rows=21 loops=1)
+  Buffers: shared hit=7
+  ->  Index Scan using comments_post_id_id_key on comments  (cost=0.29..1170.75 rows=95 width=139) (actual time=0.054..0.063 rows=21 loops=1)
+        Index Cond: ((post_id = 1) AND (id > 30))
+        Filter: (parent_id IS NULL)
+        Buffers: shared hit=7
+Planning:
+  Buffers: shared hit=123
+Planning Time: 0.587 ms
+Execution Time: 0.096 ms
+
+SELECT * FROM comments WHERE post_id=1 AND parent_id=1 AND id > 0 ORDER BY id LIMIT 21
+Limit  (cost=0.41..8.44 rows=1 width=139) (actual time=0.076..0.078 rows=4 loops=1)
+  Buffers: shared hit=7
+  ->  Index Scan using comments_page_idx on comments  (cost=0.41..8.44 rows=1 width=139) (actual time=0.075..0.076 rows=4 loops=1)
+        Index Cond: ((post_id = 1) AND (parent_id = 1) AND (id > 0))
+        Buffers: shared hit=7
+Planning:
+  Buffers: shared hit=126
+Planning Time: 0.647 ms
+Execution Time: 0.113 ms
+
+SELECT * FROM comments WHERE post_id=1 AND id > 50 ORDER BY id LIMIT 101
+Limit  (cost=0.29..248.64 rows=101 width=139) (actual time=0.054..0.091 rows=101 loops=1)
+  Buffers: shared hit=9
+  ->  Index Scan using comments_post_id_id_key on comments  (cost=0.29..1170.75 rows=476 width=139) (actual time=0.053..0.078 rows=101 loops=1)
+        Index Cond: ((post_id = 1) AND (id > 50))
+        Buffers: shared hit=9
+Planning:
+  Buffers: shared hit=123
+Planning Time: 0.708 ms
+Execution Time: 0.127 ms
+
+SELECT b.ordinality,c.* FROM unnest(ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]::bigint[]) WITH ORDINALITY b(parent_id,ordinality) CROSS JOIN LATERAL (SELECT * FROM comments WHERE post_id=1 AND parent_id=b.parent_id AND id>0 ORDER BY id LIMIT 21) c
+Nested Loop  (cost=0.42..169.15 rows=20 width=147) (actual time=0.129..0.222 rows=80 loops=1)
+  Buffers: shared hit=84
+  ->  Function Scan on unnest b  (cost=0.00..0.20 rows=20 width=16) (actual time=0.025..0.028 rows=20 loops=1)
+  ->  Limit  (cost=0.41..8.44 rows=1 width=139) (actual time=0.007..0.009 rows=4 loops=20)
+        Buffers: shared hit=84
+        ->  Index Scan using comments_page_idx on comments  (cost=0.41..8.44 rows=1 width=139) (actual time=0.007..0.008 rows=4 loops=20)
+              Index Cond: ((post_id = 1) AND (parent_id = b.parent_id) AND (id > 0))
+              Buffers: shared hit=84
+Planning:
+  Buffers: shared hit=123
+Planning Time: 1.061 ms
+Execution Time: 0.295 ms

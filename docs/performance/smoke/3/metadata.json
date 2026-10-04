@@ -1,0 +1,55 @@
+{
+  "profile": "smoke",
+  "replicas": 3,
+  "duration": "2s",
+  "warmup": "1s",
+  "repeats": 1,
+  "concurrency": [
+    8
+  ],
+  "scenarios": [
+    "read",
+    "mixed",
+    "uniform",
+    "hot",
+    "batch",
+    "subscriptions"
+  ],
+  "fixture": {
+    "posts": 100,
+    "roots": 10000,
+    "replies": 40000
+  },
+  "parameters": {
+    "APP_CPUS": "0.34",
+    "APP_MEMORY": "170m",
+    "DB_POOL_SIZE": "7",
+    "MAX_OPERATIONS": "21",
+    "DB_NAME": "ozon_test",
+    "GLOBAL_RPS": "100000",
+    "GLOBAL_BURST": "100000"
+  },
+  "postgres": {
+    "cpu": 2,
+    "memory": "1g",
+    "max_connections": 100
+  },
+  "load_balancer": {
+    "cpu": 0.25,
+    "memory": "64m"
+  },
+  "rate_limits": {
+    "per_process_actor_rps": 100000,
+    "shared_lb_rps": 100000
+  },
+  "route": "nginx",
+  "commit": "7ed5139670adb3fa7215e835c5be27edec853325",
+  "dirty": true,
+  "source_sha256": "6589b04046bd34036c7af6902ca5e0bfc772b8ee5f6ace47dc50fbd3685eceb6",
+  "go": "go version go1.25.0 darwin/arm64",
+  "docker": "29.5.2",
+  "postgres_version": "PostgreSQL 17.11 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "image": "sha256:fc4769e243d4b60c75ebd5aa3e01ad4492f6907dac0652e0a50ce085fa260f28",
+  "metrics_window": "before warmup through measurement; HTTP latency excludes warmup",
+  "started_utc": "2026-10-04T13:51:23Z"
+}
